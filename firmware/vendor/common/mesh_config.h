@@ -596,7 +596,8 @@ extern "C" {
 #define LIGHT_TYPE_SEL				LIGHT_TYPE_PANEL
 		#endif
 	#else
-#define LIGHT_TYPE_SEL				LIGHT_TYPE_CT	// 
+//#define LIGHT_TYPE_SEL				LIGHT_TYPE_CT	//
+#define LIGHT_TYPE_SEL				LIGHT_TYPE_PANEL	// RD_EDIT: Light Type
 	#endif
 #endif
 #endif
@@ -1030,7 +1031,7 @@ extern "C" {
 #define MD_CLIENT_EN                1   // just SIG models, and exclude sensor model.
 	#else
 #define MD_SERVER_EN                1   // SIG and vendor models, and exclude sensor model.
-#define MD_CLIENT_EN                0   // just SIG models, and exclude sensor model.
+#define MD_CLIENT_EN                0   // just SIG models, and exclude sensor model.	//RD_EDIT: MD_CLIENT_EN
 	#endif
     #if(DUAL_VENDOR_EN)
 #define MD_CLIENT_VENDOR_EN         0

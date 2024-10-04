@@ -794,7 +794,7 @@ typedef struct{
 
 //--------------------------------------- node composition data
 #ifndef LIGHT_CNT
-#if (LIGHT_TYPE_SEL == LIGHT_TYPE_PANEL)
+#if (LIGHT_TYPE_SEL == LIGHT_TYPE_PANEL)	// RD_EDIT: element of Light
 	#if __PROJECT_MESH_SWITCH__
 		#if KB_LINE_MODE
 #define LIGHT_CNT                       (1)     // means instance count
@@ -804,7 +804,8 @@ typedef struct{
 	#elif (__PROJECT_SPIRIT_LPN__)
 #define LIGHT_CNT                       (1)
 	#else
-#define LIGHT_CNT                       (3)     // means instance count
+//#define LIGHT_CNT                       (3)     // means instance count
+#define LIGHT_CNT                       (2)     // means instance count
 	#endif
 #elif (LIGHT_TYPE_SEL == LIGHT_TYPE_NLC_CTRL_CLIENT)
 #define LIGHT_CNT                       (4)     // means instance count
@@ -813,7 +814,7 @@ typedef struct{
 #endif
 #endif
 #define ELE_CNT                         (LIGHT_CNT * ELE_CNT_EVERY_LIGHT)
-
+//RD_Edit: ELE_CNT                         (LIGHT_CNT * ELE_CNT_EVERY_LIGHT)
 //--------------------------------node extended and corresponding models start--------------
 #if COMPOSITION_DATA_PAGE1_PRESENT_EN
 #define MAX_EXTEND_MD_NUM							2
@@ -1012,7 +1013,7 @@ typedef struct{
 	u8 sub_uuid[SUB_LIST_MAX][16];
 	#endif
 #endif
-}model_common_t;
+}model_common_t;	// RD_EDIT: Element str
 
 typedef struct{
     model_common_t com;             // must first

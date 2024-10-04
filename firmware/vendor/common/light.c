@@ -2149,9 +2149,9 @@ _USER_CAN_REDEFINE_ void show_ota_result(int result)
 	if(result == OTA_REBOOT_NO_LED){
 		// nothing
 	}else if(result == OTA_SUCCESS){
-		light_ev_with_sleep(3, 1000*1000);	//0.5Hz shine for  6 second
+//		light_ev_with_sleep(3, 1000*1000);	//0.5Hz shine for  6 second	//RD_EDIT: show_ota_result
 	}else{
-		light_ev_with_sleep(30, 100*1000);	//5Hz shine for  6 second
+//		light_ev_with_sleep(30, 100*1000);	//5Hz shine for  6 second
 		//write_reg8(0x8000,result); ;while(1);  //debug which err lead to OTA fail
 	}
 	

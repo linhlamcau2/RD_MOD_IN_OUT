@@ -134,6 +134,7 @@ user can be allowed to redefined PID and VID if needed.
 #define MESH_VID		    FW_VERSION_TELINK_RELEASE       // user can redefine
 #elif (__PROJECT_MESH__)   // light
 #define MESH_PID_SEL		(PID_LIGHT)
+//#define MESH_PID_SEL		(RD_PID_TYPE)	//RD_EDIT: PID-VID
 	#if DU_ENABLE
 #define MESH_VID		    DU_FW_VER       // in the du mode ,we will use to set version .
 	#else

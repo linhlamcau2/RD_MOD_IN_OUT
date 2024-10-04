@@ -45,6 +45,8 @@
 #include "certify_base/certify_base_crypto.h"
 #include "dual_mode_adapt.h"
 
+#include "../mesh/RD_in_out/rd_in_out.h"		//RD_EDIT: include addition
+
 #if !WIN32
 #include "third_party/micro-ecc/uECC.h"
 #include "vendor/common/mi_api/telink_sdk_mible_api.h"
@@ -1815,6 +1817,7 @@ const fw_id_t fw_id_local = {
  * @return      
  * @note        for both GATT and MESH ADV OTA
  */
+//RD_EDIT: ota_is_valid_pid_vid
 _USER_CAN_REDEFINE_ int ota_is_valid_pid_vid(fw_id_t *p_fw_id, int gatt_flag)
 {
     #if (OTA_ADOPT_RULE_CHECK_PID_EN)
@@ -3068,7 +3071,7 @@ void usb_id_init()
 	#endif
 	REG_ADDR8(0x74) = 0x00;
 }
-
+// RD_EDIT: void ble_mac_init()
 void ble_mac_init()
 {
 	#if RELAY_ROUTE_FILTE_TEST_EN
@@ -3097,9 +3100,12 @@ void ble_mac_init()
 		tbl_mac[2] = value_rand[2];
 
 		#if(MCU_CORE_TYPE == MCU_CORE_8258)
-			tbl_mac[3] = 0x38;             //company id: 0xA4C138
-			tbl_mac[4] = 0xC1;
-			tbl_mac[5] = 0xA4;
+//			tbl_mac[3] = 0x38;             //company id: 0xA4C138
+//			tbl_mac[4] = 0xC1;
+//			tbl_mac[5] = 0xA4;
+			tbl_mac[3] = 0x02;             //company id: 0xA4C138
+			tbl_mac[4] = 0x02;
+			tbl_mac[5] = 0x1C;
 		#elif(MCU_CORE_TYPE == MCU_CORE_8278)
 			tbl_mac[3] = 0xD1;             //company id: 0xC119D1
 			tbl_mac[4] = 0x19;
@@ -3129,6 +3135,20 @@ _USER_CAN_REDEFINE_ void mesh_scan_rsp_init()
 	tbl_scanRsp.vendor_id = g_vendor_id;
 	tbl_scanRsp.adr_primary = ele_adr_primary;
 	memcpy(tbl_scanRsp.mac_adr, tbl_mac, sizeof(tbl_scanRsp.mac_adr));
+	//RD_EDIT: sua type device
+	tbl_scanRsp.rsv_user[0] = Device_BROADCRARD_0;
+		tbl_scanRsp.rsv_user[1] = Device_BROADCRARD_1;
+		tbl_scanRsp.rsv_user[2] = Device_BROADCRARD_2;
+		tbl_scanRsp.rsv_user[3] = Device_BROADCRARD_3;
+		tbl_scanRsp.rsv_user[4] = Device_BROADCRARD_4;
+		tbl_scanRsp.rsv_user[5] = Device_BROADCRARD_5;
+		tbl_scanRsp.rsv_user[6] = Device_BROADCRARD_6;
+		tbl_scanRsp.rsv_user[7] = Device_BROADCRARD_7;
+		tbl_scanRsp.rsv_user[8] = 0x00;
+		tbl_scanRsp.rsv_user[9] = 0x00;
+		tbl_scanRsp.rsv_user[10] = 0x00;
+
+		tbl_scanRsp.type = GAP_ADTYPE_MANUFACTURER_SPECIFIC;	// manufacture data
 	#if 0
 	foreach(i,sizeof(tbl_scanRsp.rsv_user)){
 		tbl_scanRsp.rsv_user[i] = 1 + i;
@@ -3145,8 +3165,8 @@ _USER_CAN_REDEFINE_ void mesh_scan_rsp_init()
 	tbl_scanRsp.len = sizeof(mesh_scan_rsp_t) - 1;
 	#endif
 	
-	u8 rsp_len = sizeof(mesh_scan_rsp_t);
-	
+//	u8 rsp_len = sizeof(mesh_scan_rsp_t);
+	u8 rsp_len = tbl_scanRsp.len+1;
 	#if(AIS_ENABLE)
 	rsp_len = ais_pri_data_set(&tbl_scanRsp.len);	
 	#endif
@@ -3259,8 +3279,8 @@ void publish_when_powerup()
 void mesh_vd_init()
 {
 #if MD_SERVER_EN
-	light_res_sw_load();
-	light_pwm_init();
+	light_res_sw_load();//RD_EDIT:light_res_sw_load
+//	light_pwm_init();RD_EDIT: light_pwm_init
 	#if !WIN32
 	    #if (FEATURE_LOWPOWER_EN)
 	publish_when_powerup();
@@ -3425,7 +3445,7 @@ void mesh_global_var_init()
 	mesh_global_var_init_fn_buf();
 #endif
 #if MD_SERVER_EN
-	mesh_global_var_init_light_sw();
+	mesh_global_var_init_light_sw();	//RD_EDIT: mesh_global_var_init_light_sw
     #if (MD_SENSOR_SERVER_EN)
 	mesh_global_var_init_sensor_descrip();
     #endif

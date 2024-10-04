@@ -176,7 +176,7 @@ void user_power_on_proc()
         #elif MD_SENSOR_EN
         // tx nothing
         #elif MD_ONOFF_EN
-        mesh_tx_cmd_g_onoff_st(i, adr_src, 0xffff, 0, 0, G_ONOFF_STATUS);   // will send every onoff status
+//        mesh_tx_cmd_g_onoff_st(i, adr_src, 0xffff, 0, 0, G_ONOFF_STATUS);   //RD_EDIT: will send every onoff status
         #endif
     }
     #endif

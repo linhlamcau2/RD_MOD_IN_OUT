@@ -31,7 +31,7 @@
 #include "analog.h"
 
 #include "gpio.h"
-
+//RD_EDIT: PWM_FUNC_R
 #ifdef PWM_FUNC_R
 STATIC_ASSERT((PWM_FUNC_R == AS_PWM)||((PWM_FUNC_R == AS_PWM_SECOND)&&((PWM_R==GPIO_PC1)||(PWM_R==GPIO_PC4)||(PWM_R==GPIO_PD5))));
 #endif

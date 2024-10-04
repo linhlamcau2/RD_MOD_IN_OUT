@@ -174,7 +174,7 @@ static inline void pwm_stop_id(pwm_id_e id)
 #elif (LIGHT_TYPE_SEL == TYPE_TOOTH_BRUSH)
 #define ONPOWER_UP_SELECT       ONPOWER_UP_OFF
 #else
-#define ONPOWER_UP_SELECT       ONPOWER_UP_DEFAULT // ONPOWER_UP_STORE // 
+#define ONPOWER_UP_SELECT       ONPOWER_UP_STORE//ONPOWER_UP_DEFAULT // ONPOWER_UP_STORE //RD_EDIT: ONPOWER_UP_STORE
 #endif
 
 enum ST_TRANS_TYPE{					// type of State transition

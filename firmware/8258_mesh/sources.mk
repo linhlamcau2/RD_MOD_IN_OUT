@@ -18,8 +18,11 @@ SIZEDUMMY :=
 SUBDIRS := \
 vendor/user_app \
 vendor/mesh \
+vendor/mesh/RD_secure \
+vendor/mesh/RD_meshdata \
 vendor/mesh/RD_log \
 vendor/mesh/RD_in_out \
+vendor/mesh/RD_flash \
 vendor/common \
 vendor/common/telink_platform \
 vendor/common/nlc \

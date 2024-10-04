@@ -216,13 +216,20 @@ int factory_reset_cnt_check ()
 new factory reset:
 user can change any one of factory_reset_serials, and also can change SERIALS_CNT
 *****************************************/
-
+//RD_Edit: FACTORY_RESET_SERIALS
+#define TIME_ON_RESET_S	 			5
 #ifndef FACTORY_RESET_SERIALS      // user can define in "user_app_config.h"
-#define FACTORY_RESET_SERIALS      { 0, 3, \
-                                     0, 3, \
-                                     0, 3, \
-                                     3, 30,\
-                                     3, 30,}
+//#define FACTORY_RESET_SERIALS      { 0, 3, \
+//                                     0, 3, \
+//                                     0, 3, \
+//                                     3, 30,\
+//                                     3, 30,}
+#define FACTORY_RESET_SERIALS      { 0, TIME_ON_RESET_S, \
+                                     0, TIME_ON_RESET_S, \
+                                     0, TIME_ON_RESET_S, \
+                                     0, TIME_ON_RESET_S, \
+                                     TIME_ON_RESET_S, 30,\
+                                     TIME_ON_RESET_S, 30,}
 #endif
 
 const u8 factory_reset_serials[] = FACTORY_RESET_SERIALS;

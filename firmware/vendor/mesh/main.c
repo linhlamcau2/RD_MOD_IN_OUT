@@ -32,7 +32,7 @@
 #include "proj_lib/sig_mesh/app_mesh.h"
 
 #include "RD_log/RD_log.h"
-#include "RD_in_out/RD_in_out.h"
+#include "RD_in_out/rd_in_out.h"
 
 extern void user_init();
 extern void main_loop ();
@@ -235,21 +235,22 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 //		char buff[50];
 		uart_CSend("hello\n");
 //		RD_ev_log("hello1\n");
-//		RD_ev_log("mac[0]: %x,mac[1]: %x,mac[2]: %x\n",tbl_mac[0],tbl_mac[1],tbl_mac[2]);
-		init_in_out_pin();
+		RD_ev_log("mac[0]: %x,mac[1]: %x,mac[2]: %x\n",tbl_mac[3],tbl_mac[4],tbl_mac[5]);
+//		init_in_out_pin();
 	}
-
+	RD_mod_in_out_init();
     irq_enable();
 
 	while (1) {
 #if (MODULE_WATCHDOG_ENABLE)
 		wd_clear(); //clear watch dog
 #endif
-		sleep_ms(500);
-		u32 start_tick = clock_time_ms();
-		wd_clear();
+//		sleep_ms(500);
+//		u32 start_tick = clock_time_ms();
+//		wd_clear();
 //		sleep_us(1000);
 		main_loop ();
+		RD_mod_in_out_loop();
 	}
 }
 #endif

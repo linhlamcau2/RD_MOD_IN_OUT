@@ -29,6 +29,9 @@
 #include "proj_lib/sig_mesh/app_mesh.h"
 #include "vendor_model.h"
 #include "fast_provision_model.h"
+
+#include "../mesh/RD_meshdata/rd_meshdata.h"
+
 #if DU_ENABLE
 #include "user_du.h"
 #endif
@@ -1050,7 +1053,19 @@ mesh_cmd_sig_func_t mesh_cmd_vd_func[] = {
     CMD_NO_STR(VD_MESH_USER_DEMO_STATUS, 1, VENDOR_MD_LIGHT_S, VENDOR_MD_LIGHT_C, cb_vd_user_demo_status, STATUS_NONE),
 	#endif
 #endif
+    //RD_EDIT: RD_VENDOR
+    #if RD_VENDOR_EN
 
+
+        // {RD_OPCODE_TRAIN_FAC,0,VENDOR_MD_LIGHT_C,VENDOR_MD_LIGHT_S,RD_Messenger_ProcessCommingProcess_TRAIN,RD_OPCODE_SCENE_RSP},
+        // {FPT_OPCODE_SECURE,1,VENDOR_MD_LIGHT_C,VENDOR_MD_LIGHT_S,RD_Messenger_Secure_FPT,FPT_OPCODE_SECURE},
+
+       {RD_OPCODE_TYPE_SEND,0,VENDOR_MD_LIGHT_C,VENDOR_MD_LIGHT_S,RD_Messenger_ProcessCommingProcess_Type,RD_OPCODE_TYPE_RSP},
+       {RD_OPCODE_TYPE_RSP,1,VENDOR_MD_LIGHT_S,VENDOR_MD_LIGHT_C,mesh_cmd_sig_RD_respone_status_type,STATUS_NONE},
+       {RD_OPCODE_SCENE_SEND,0,VENDOR_MD_LIGHT_C,VENDOR_MD_LIGHT_S,RD_Messenger_ProcessCommingProcess_SCENE,RD_OPCODE_SCENE_RSP},
+       {RD_OPCODE_SCENE_RSP,1,VENDOR_MD_LIGHT_S,VENDOR_MD_LIGHT_C,mesh_cmd_sig_RD_respone_status_SCENE,STATUS_NONE},
+
+       {RD_OPCODE_TRAIN_FAC,0,VENDOR_MD_LIGHT_C,VENDOR_MD_LIGHT_S,RD_Messenger_ProcessCommingProcess_TRAIN,RD_OPCODE_SCENE_RSP},
     USER_MESH_CMD_VD_ARRAY
 };
 

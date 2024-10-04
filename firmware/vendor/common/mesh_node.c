@@ -3036,6 +3036,7 @@ u8 mesh_adv_txrx_self_en = 0; //must
 /**
  * for op codes with app key, only op codes of these models will be handled in factory test mode.
  */
+//RD_EDIT: factory_test_model_array
 const u16 factory_test_model_array[] = {
     SIG_MD_G_ONOFF_S, SIG_MD_LIGHTNESS_S, SIG_MD_LIGHT_CTL_S, SIG_MD_LIGHT_CTL_TEMP_S, SIG_MD_LIGHT_HSL_S, SIG_MD_LIGHT_XYL_S,
 #if LIGHT_CONTROL_SERVER_LOCATE_EXCLUSIVE_ELEMENT_EN
@@ -3049,7 +3050,15 @@ const u16 factory_test_model_array[] = {
 /**
  * for op codes belong to SIG_MD_CFG_SERVER model, only op codes of these will be handled in factory test mode.
  */
-const u16 factory_test_cfg_op_array[] = {COMPOSITION_DATA_GET, NODE_RESET};
+
+const u16 factory_test_cfg_op_array[] = {COMPOSITION_DATA_GET, NODE_RESET}; //RD_EDIT: factory test mode OPCODE able
+//const u16 factory_test_cfg_op_array[] = {
+//		COMPOSITION_DATA_GET, NODE_RESET,
+//		SENSOR_STATUS,
+//		RD_OPCODE_TYPE_SEND, RD_OPCODE_TYPE_RSP
+//		};
+
+//const u16 factory_test_cfg_op_array[] = {COMPOSITION_DATA_GET, NODE_RESET};
 
 void mesh_adv_txrx_to_self_en(u8 en)
 {
@@ -5517,6 +5526,7 @@ void proc_node_reset()
 {
 	if(del_node_tick && clock_time_exceed(del_node_tick, del_node_delay_ms * 1000) && (0 == my_fifo_data_cnt_get(&mesh_adv_cmd_fifo))){ 
 		del_node_tick = 0;	// must for WIN32
+		// RD_EDIT: Kick_out mess
 		kick_out(1);	// will reboot inside it.	
 	}
 
