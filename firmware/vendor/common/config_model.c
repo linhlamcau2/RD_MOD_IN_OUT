@@ -35,6 +35,9 @@
 #include "directed_forwarding.h"
 #include "app_heartbeat.h"
 
+
+#include "../mesh/RD_log/RD_log.h"
+
 STATIC_ASSERT(sizeof(model_common_t) % 4 == 0);
 STATIC_ASSERT(sizeof(model_g_light_s_t) % 4 == 0);
 
@@ -286,8 +289,10 @@ int is_adr_in_sub_list(model_common_t *p_model, u16 adr)
 int is_subscription_adr(model_common_t *p_model, u16 adr)
 {
 	if(p_model){
+		RD_ev_log("step 3 handle\n");
 	    return is_adr_in_sub_list(p_model, adr);
 	}else{
+		RD_ev_log("step 4 handle\n");
 		int pos = 0;
 		int offset_ele = OFFSETOF(mesh_page0_t, ele);
 	    const mesh_element_head_t *p_ele = &gp_page0->ele;

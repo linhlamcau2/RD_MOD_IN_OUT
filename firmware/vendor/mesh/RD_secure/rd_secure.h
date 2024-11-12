@@ -1,9 +1,3 @@
-/*
- * RD_Secure.h
- *
- *  Created on: Jul 5, 2022
- *      Author: Hao PC
- */
 
 #ifndef RD_SECURE_H_
 #define RD_SECURE_H_
@@ -34,42 +28,16 @@ typedef struct
     uint32_t Time_Check_Key_Fail;
 } Secure_Stt_Str;
 /**
- * @brief Check Secure key by RD
- *
- * @param key : const 16byte define company. Ralli Smart use "RD_key[16]" defined
- * @param mac : 6 byte mac ID of device. telink sdk named: tbl_mac[].
- * @param unicast : primary unicast add of device . telink sdk named: ele_adr_primary
- * @param compare_key : key gate way send to compare with hey device gen.
- * @return unsigned char   1: Secure passed
- *                         0: secure fail
+
  */
 unsigned char RD_Secure_AesreCheck(uint8_t key[16], uint8_t mac[6], uint16_t unicast, uint8_t compare_key[6]);
-/**
- * @brief call in loop.  Check secure after provisioned end factory reset when time out 120s
- * config by TIME_UOT_SECURE
- *
- */
+
 void RD_Secure_CheckLoop(void);
-/**
- * @brief check when powerup. factory reset if secure fail and provisioned
- * Note: call functions after init Flash Data
- *
- */
+
 void RD_Secure_CheckInit(void);
 
-/**
- * @brief Set Secure stt.  when pass secure device don't check reset end keep working
- *                         when pail
- *
- * @param Secure_Pass_Stt 	RD_EN: save Secure_Stt Pass
- * 							RD_DIS: save Secure_Stt fail
- */
 void RD_Secure_Set(uint8_t Secure_Pass_Stt);
 
-/**
- * @brief Call when check secure fail. device will reset after 5s
- *
- */
 void RD_Secure_Check_Key_Fail(void);
 
 #endif /* RD_SECURE_H_ */

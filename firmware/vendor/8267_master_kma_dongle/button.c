@@ -40,7 +40,7 @@
 #include "proj_lib/ble/blt_config.h"
 #include "proj/drivers/uart.h"
 
-
+//RD_EDIT: handle button
 #if (UI_BUTTON_ENABLE)
 
 extern int 	dongle_pairing_enable;

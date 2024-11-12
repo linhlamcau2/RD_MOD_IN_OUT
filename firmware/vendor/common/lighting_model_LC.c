@@ -136,7 +136,7 @@ int is_light_lc_onoff(u16 op)
 static inline void lc_light_onoff_save()
 {
 #if LIGHT_CONTROL_SAVE_LC_ONOFF_EN
-	light_par_save(0);
+	light_par_save(0,0);
 #endif
 }
 

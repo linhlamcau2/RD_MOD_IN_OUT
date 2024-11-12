@@ -344,6 +344,7 @@ u8 get_reset_cnt () // reset cnt value from 1 to 254, 0 is invalid cnt
  * @return      none
  * @note        
  */
+extern void RD_mod_io_gw_reset(void);		//RD_EDIT: GW reset, kick out
 void increase_reset_cnt ()
 {
 	u8 reset_cnt = get_reset_cnt();
@@ -600,6 +601,7 @@ void kick_out(int led_en){
 		bls_ll_terminateConnection (0x13);
 		sleep_us(500000);   // wait terminate send completed.
 	}	
+	RD_mod_io_gw_reset();
 	#endif
 	
     #if DUAL_MODE_WITH_TLK_MESH_EN

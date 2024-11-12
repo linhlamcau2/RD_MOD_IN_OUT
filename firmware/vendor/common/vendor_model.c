@@ -1065,7 +1065,8 @@ mesh_cmd_sig_func_t mesh_cmd_vd_func[] = {
        {RD_OPCODE_SCENE_SEND,0,VENDOR_MD_LIGHT_C,VENDOR_MD_LIGHT_S,RD_Messenger_ProcessCommingProcess_SCENE,RD_OPCODE_SCENE_RSP},
        {RD_OPCODE_SCENE_RSP,1,VENDOR_MD_LIGHT_S,VENDOR_MD_LIGHT_C,mesh_cmd_sig_RD_respone_status_SCENE,STATUS_NONE},
 
-       {RD_OPCODE_TRAIN_FAC,0,VENDOR_MD_LIGHT_C,VENDOR_MD_LIGHT_S,RD_Messenger_ProcessCommingProcess_TRAIN,RD_OPCODE_SCENE_RSP},
+//       {RD_OPCODE_TRAIN_FAC,0,VENDOR_MD_LIGHT_C,VENDOR_MD_LIGHT_S,RD_Messenger_ProcessCommingProcess_TRAIN,RD_OPCODE_SCENE_RSP},
+#endif
     USER_MESH_CMD_VD_ARRAY
 };
 

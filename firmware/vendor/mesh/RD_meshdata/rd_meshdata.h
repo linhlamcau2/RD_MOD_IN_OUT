@@ -31,9 +31,14 @@
 #define RD_HEADER_FACTORY_TEST_END		(0x0004)
 #define RD_HEADER_KICK_ALL				(0xFFFF)
 
+#define RD_HEADER_SETTING_INPUT				(0x020f)
+#define RD_HEADER_LINKED_INPUT				(0x030f)
+#define RD_HEADER_RELAY_STARTUP				(0x100b)
+#define RD_HEADER_SETTING_SENCE_INPUT		(0x040f)
 
 #define RD_OPCODE_SCENE_SEND			(0xE2)
 #define RD_OPCODE_SCENE_RSP				(0xE3)
+#define RD_OPCODE_INPUT_RSP				(0x52)
 
 #define RD_OPCODE_TRAIN_FAC						0xFE
 
@@ -54,9 +59,11 @@
 #define RD_HEADER_SW_RGB_CONFIG				RD_HEADER_SW4_RGB_CONFIG
 #define RD_HEADER_SW_SETUP_LINKCTR			RD_HEADER_SW4_SETUP_LINKCTR
 #define RD_HEADER_SW_SETUP_COUNT_DOWN		RD_HEADER_SW4_SETUP_COUNT_DOWN
+
 #define RD_HEADER_REUP_STT					(0x080B)
 #define RD_HEADER_CTRALL_REUP_STT			(0x110B)
 #define RD_HEADER_SET_K9B_LOCAL_MODE		(0x120B)
+#define RD_HEADER_INPUT_STT					(0x010f)
 
 #define RD_HEADER_SW_PAIR_K9BREMOTE			(0x0A0B)
 #define RD_HEADER_SW_SAVESCENE_K9BREMOTE	(0x0C0B)
@@ -66,11 +73,10 @@
 #define RD_HEADER_SW_DELETESCENE_K9BREMOTE	(0x0F0B)
 #define RD_HEADER_SW_POWUP_CONFIG			(0x100B)
 
-#define RD_AUTO_CREATE_GS					(0x0C0A)
-#define RD_AUTO_DELETE_GS					(0x0D0A)
+#define RD_AUTO_CREATE_GR					(0x0C0A)
+#define RD_AUTO_DELETE_GR					(0x0D0A)
 
 #define RD_HEADER_SENSOR_SWT_STT			RD_HEADER_SENSOR_SW4T_STT
-
 
 #define RD_OPCODE_POWER 						(0x0001)
 
@@ -205,5 +211,12 @@ void RD_Mess_ScanK9BHC_Rsp(uint16_t Gw_Add_Buff, uint32_t K9Bmac, uint8_t type, 
 
 void RD_MessK9BHc_Press(uint16_t K9B_Add, uint8_t ButtonID, uint8_t ModeID, uint16_t SenceID);
 
+uint8_t RD_K9B_ScanOnOff(uint32_t macDevice, uint8_t key, uint32_t par_signature);
+void RD_Handle_ScanK9BHc(uint8_t par[8], uint16_t Gw_Add_Buff);
+void RD_Handle_K9BSaveScene(uint8_t par[8], uint16_t Gw_Add_Buff);
+void RD_Handle_K9BDeleteScene(uint8_t par[8], uint16_t Gw_Add_Buff);
+void RD_Handle_SaveK9BHc(uint8_t par[8], uint16_t Gw_Add_Buff);
+void RD_Handle_DeleteK9BHC(uint8_t par[8], uint16_t Gw_Add_Buff);
+void RD_Handle_K9BLocalModeConfig(u8 *par, uint16_t Gw_Add_Buff);
 
 #endif /* RD_MESSDATA_H_ */

@@ -12,37 +12,26 @@ extern int mesh_tx_cmd_g_onoff_st(u8 idx, u16 ele_adr, u16 dst_adr, u8 *uuid,
 #include "tl_common.h"
 #include "proj/mcu/watchdog_i.h"
 #include "vendor/common/user_config.h"
+#include "vendor/common/light.h"
 #include "proj_lib/rf_drv.h"
 #include "proj_lib/pm.h"
 #include "proj_lib/ble/blt_config.h"
 #include "proj_lib/ble/ll/ll.h"
 #include "proj_lib/sig_mesh/app_mesh.h"
 
-uint8_t CycleBlink = 0;
-uint8_t check = 0;
 
-uint16_t CountToggleBlink = 0;
-uint8_t Button1_Keep_Flag = 0;
-uint8_t Button2_Keep_Flag = 0;
-uint8_t Button3_Keep_Flag = 0;
-uint8_t Button4_Keep_Flag = 0;
-uint8_t Button5_Keep_Flag = 0;
 
 uint8_t Button1_Hold_Flag = 0;
 uint8_t Button2_Hold_Flag = 0;
-uint8_t Button3_Hold_Flag = 0;
-uint8_t Button4_Hold_Flag = 0;
-uint8_t Button5_Hold_Flag = 0;
 
-uint8_t Sw1_PairK9B_OnOff_Flag = 0;
+
+
 uint8_t Register_Config[128] = { 0 };
 
 Button_Stt_Type button1_Stt = Button_None;
 Button_Stt_Type button2_Stt = Button_None;
-Button_Stt_Type button3_Stt = Button_None;
-Button_Stt_Type button4_Stt = Button_None;
-Button_Stt_Type button5_Stt = Button_None;
-static uint8_t Reset_Count_Buff = 0;
+
+
 
 Relay_Stt_Type relay_Stt[5] = { 0 };
 
@@ -63,35 +52,36 @@ Sw_press_K9BHC_Str Sw_Press_K9BHC_Val;
 Sw_Update_Stt_Str Sw_Update_Stt_Val;
 u8 element = 2;
 
-uint32_t Input_Array[NUM_OF_INPUT] = ARR_INPUT_PIN;
+uint32_t Input_Array[] = ARR_INPUT_PIN;
 uint32_t Output_Array[NUM_OF_ELEMENT] = ARR_OUTPUT_PIN;
 
-Sw_Woring_K9B_Str Sw_Woring_K9B_Val = { 0 };
-static uint16_t count_k9B_press[NUM_OF_ELEMENT] = { 0 };
+extern void init_handler_callee_state_output();
+extern void init_handler_caller_state_output();
+static void RD_init_handle_output()
+{
+	init_handler_callee_state_output();
+	init_handler_caller_state_output();
+}
 
 static void RD_GPIO_Init(void) {
 	/*--------------------------- init output led ----------------------------------*/
 	for (int i = 0; i < NUM_OF_ELEMENT; i++) {
 		gpio_set_func(Output_Array[i], AS_GPIO);
 		gpio_set_output_en(Output_Array[i], 1);
-		OUTPUT_WRITE(i,1);
+//		OUTPUT_WRITE(i,1);
 	}
 	for (int i = 0; i < NUM_OF_INPUT; i++) {
 		gpio_setup_up_down_resistor(Input_Array[i], PM_PIN_PULLDOWN_100K);
 		gpio_set_func(Input_Array[i], AS_GPIO);
 		gpio_set_input_en(Input_Array[i], 1);
 	}
-}
-
-static void RD_Switch_Intro(void) {
-	//	char UART_TempSend[64];
-	//	sprintf(UART_TempSend,"RD Switch V3 x2 Version: %d.%d \n",Firm_Ver_H,Firm_Ver_L);
-	uart_CSend("Module In Out Version: 0.1.0\n");
+	RD_init_handle_output();
 }
 
 static void RD_in_out_check_provision(void) {
 	if (get_provision_state() == STATE_DEV_UNPROV) {
-		OUTPUT_WRITE(0,0);
+		RD_mod_io_blink(4,4,0);
+		RD_mod_io_blink(4,4,1);
 	}
 }
 
@@ -102,14 +92,10 @@ void RD_mod_in_out_init(void) {
 
 	RD_in_out_check_provision();
 
-	RD_Secure_CheckInit();
+//	RD_Secure_CheckInit();
 	//	Send_Relay_Stt_Message_RALL_PowerUp();
 }
 
-void RD_SwitchAc4Ch_BlinkSet(uint8_t cycle, uint16_t countToggle) {
-	CycleBlink = cycle;
-	CountToggleBlink = countToggle;
-}
 
 void RD_mod_in_out_factory_reset() {
 	uart_CSend("Factory reset \n");
@@ -133,19 +119,112 @@ void RD_mod_in_out_factory_reset() {
 	start_reboot();
 }
 
+void RD_Check_UpdateStt(void);
+
 void RD_mod_in_out_loop(void) {
-	static uint16_t timeLoop = 0;
 	static uint64_t clockTick_ReadBt_ms = 0;
-	timeLoop++;
-	if (timeLoop >= 200) {
 
-		timeLoop = 0;
-
-#if 0
-		char UART_TempSend[128];
-		sprintf(UART_TempSend,"Toggle%x \n",relay_stt);
-		uart_CSend(UART_TempSend);
-#endif
+	if(clock_time_ms() < clockTick_ReadBt_ms) clockTick_ReadBt_ms = clock_time_ms();
+	if(clock_time_ms() - clockTick_ReadBt_ms >= CYCLE_READ_BT_MS)
+	{
+		clockTick_ReadBt_ms = clock_time_ms();
+		RD_SwitchAC4Ch_ScanB_V2();
 	}
-	RD_Secure_CheckLoop();
+
+	RD_SwitchAC4Ch_UpdateCtr();
+
+	RD_SwitchAC4Ch_ScanReset();
+
+	RD_K9B_ScanPairOnOff();
+//
+	RD_K9B_TimeOutScanK9BHC();
+
+	RD_Check_UpdateStt();
+
+	RD_handle_caller_state_out();
+
+	RD_handle_callee_state_out();
+
+//	RD_Secure_CheckLoop();
 }
+
+
+void RD_SetAndRsp_Switch(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff)
+{
+	uart_CSend("  SetAndRsp_Switch\n");
+	light_onoff_idx(Light_index,OnOff_Set, 0);
+	set_on_power_up_onoff(Light_index, 0, OnOff_Set); // save for POWer_up
+
+	if(GW_Add_Rsp_G_onoff != 0x0000)			// Rsp to Gw if GW_Add_Rsp_G_onoff != 0x0000;
+	{
+		uart_CSend("send on_off\n");
+		RD_Send_Relay_Stt(Light_index + 1, OnOff_Set);
+	}
+}
+
+void RD_mod_io_gw_reset(void) //RD_Todo:
+{
+	for(int i=0; i<5; i ++)
+	{
+		for(int i=0; i< NUM_OF_ELEMENT; i++)
+		{
+			OUTPUT_WRITE(i,0);
+		}
+		sleep_ms(200);
+		for(int i=0; i< NUM_OF_ELEMENT; i++)
+		{
+			OUTPUT_WRITE(i,0);
+		}
+		sleep_ms(200);
+		wd_clear(); //clear watch dog
+	}
+	if((get_provision_state() == STATE_DEV_UNPROV))
+	{
+		reset_Mess_Flag = 0;
+	}
+	RD_Flash_Save_DataDefault();
+	sleep_ms(200);
+}
+
+void RD_Check_UpdateStt(void)
+{
+	if(Sw_Update_Stt_Val.Time_Last_Update_ms < clock_time_ms()) Sw_Update_Stt_Val.Time_Last_Update_ms =0;
+	if(clock_time_ms() - Sw_Update_Stt_Val.Time_Last_Update_ms >= 500)
+	{
+		Sw_Update_Stt_Val.Time_Last_Update_ms = clock_time_ms();
+
+		for(int i=0; i<4; i++)
+		{
+			if(Sw_Update_Stt_Val.Update_Stt_Flag[0] == RD_EN)
+			{
+				Sw_Update_Stt_Val.Update_Stt_Flag[0] = RD_DIS;
+				RD_Update_Relay_Stt(1);
+				break;
+			}
+
+		}
+	}
+}
+
+void RD_Set_UpdateStt(uint8_t Relay_ID)
+{
+	Sw_Update_Stt_Val.Time_Last_Update_ms = clock_time_ms() + (ele_adr_primary%50)*100; // set time rsp in many time task
+	if(Relay_ID <= 5 )
+	{
+		Sw_Update_Stt_Val.Update_Stt_Flag[Relay_ID-1] = RD_EN;
+	}
+	if(Relay_ID == 0xff)
+	{
+		Sw_Update_Stt_Val.Update_Stt_Flag[0] = RD_EN;
+		Sw_Update_Stt_Val.Update_Stt_Flag[1] = RD_EN;
+		Sw_Update_Stt_Val.Update_Stt_Flag[2] = RD_EN;
+		Sw_Update_Stt_Val.Update_Stt_Flag[3] = RD_EN;
+		Sw_Update_Stt_Val.Update_Stt_Flag[4] = RD_EN;
+	}
+	char UART_Buff[64];
+	sprintf(UART_Buff,"set update stt Relay ID: %d", Relay_ID);
+	uart_CSend(UART_Buff);
+}
+
+
+

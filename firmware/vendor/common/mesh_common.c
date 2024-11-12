@@ -3789,14 +3789,14 @@ int SendOpParaDebug_vendor(u16 adr_dst, u8 rsp_max, u16 op, u8 *par, int len, u8
 }
 
 /********
-    user can use mesh_tx_cmd() or mesh_tx_cmd2self_primary() to send command to self.
+    user can use mesh_tx_cmd() or mesh_tx_cmd2self_primary() to send command to self.   //RD_EDIT: send command to self
 */
 int mesh_tx_cmd2self_primary(u32 light_idx, u8 *ac, int len_ac)    // ac: op code + par
 {
     if(light_idx >= g_ele_cnt){
         return -1;
     }
-    
+    uart_CSend("Processing mesh_tx_cmd2self_primary() i\n");			//RD_EDIT: func handle Input mesh step i
     mesh_cmd_nw_t nw = {0};
     nw.src = ele_adr_primary;
     nw.dst = ele_adr_primary + light_idx;
@@ -3870,8 +3870,9 @@ u8 mesh_access_layer_dst_addr_valid(mesh_cmd_nw_t *p_nw )
  * @retval Whether the message was processed
  *   (0 Message processed or -1 Message not processed)
  */
-int mesh_rc_data_layer_access_cb(u8 *params, int par_len, mesh_cb_fun_par_t *cb_par)
+int mesh_rc_data_layer_access_cb(u8 *params, int par_len, mesh_cb_fun_par_t *cb_par)	//RD_EDIT: func handle Input mesh step i+3
 {
+	uart_CSend("Processing mesh_rc_data_layer_access_cb() i+3\n");
     __UNUSED int log_len = par_len;
     #if HCI_LOG_FW_EN
     if(log_len > 10){
@@ -3969,6 +3970,7 @@ int mesh_rc_data_layer_access_cb(u8 *params, int par_len, mesh_cb_fun_par_t *cb_
 		#if MD_SERVER_EN
 		g_op_access_layer_rx = cb_par->op;
 		#endif
+		uart_CSend("Handle func OPCODE i+3\n");
         err = p_res->cb(params, par_len, cb_par);   // use mesh_tx_with_random_delay_ms in this function in library.
 		#if MD_SERVER_EN
 		g_op_access_layer_rx = 0; // reset to invalid.

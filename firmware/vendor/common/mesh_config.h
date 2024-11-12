@@ -1006,7 +1006,8 @@ extern "C" {
 #define MD_POWER_ONOFF_EN           MD_DEF_TRANSIT_TIME_EN 	// because both of them save in same flash sector.
     #endif
 #define MD_TIME_EN                  0
-#define MD_SCENE_EN                 (0 || NLCP_BLC_EN)
+//#define MD_SCENE_EN                 (0 || NLCP_BLC_EN)
+#define MD_SCENE_EN					1 //RD_EDIT: SCENE_EN
 #define MD_SCHEDULE_EN              MD_TIME_EN  // because both of them save in same flash sector.
 #define MD_PROPERTY_EN				0
 #define	MD_LOCATION_EN				0	// location,sensor,battery use same flash addr, but one sector max store 6 models

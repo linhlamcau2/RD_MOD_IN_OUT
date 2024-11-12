@@ -235,7 +235,7 @@ int otaWrite(void * p)
 #if 0 // DUAL_VENDOR_EN	// confirm later
     return 0;
 #endif
-
+//    Sw_Working_Stt_Val.OTA_Flag = 0x01; // RD_EDIT: Set flag OTA
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*)p;
 	static u32 fw_check_val = 0;
 	static u8 need_check_type = 0;//=1:crc val sum

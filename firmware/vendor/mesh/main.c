@@ -232,11 +232,9 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		uart_gpio_set(GPIO_PD7,GPIO_PA0);	//RD_EDIT: uart_init
 		uart_init_baudrate(115200, CLOCK_SYS_CLOCK_HZ, PARITY_NONE, STOP_BIT_ONE);	//RD_EDIT: uart_init
 		uart_dma_enable(0,0);
-//		char buff[50];
 		uart_CSend("hello\n");
-//		RD_ev_log("hello1\n");
 		RD_ev_log("mac[0]: %x,mac[1]: %x,mac[2]: %x\n",tbl_mac[3],tbl_mac[4],tbl_mac[5]);
-//		init_in_out_pin();
+//		RD_ev_log("u32: %d,uint32_t: %d, u16: %d, uint16_t: %d\n",sizeof(u32),sizeof(uint32_t),sizeof(u16),sizeof(uint16_t));
 	}
 	RD_mod_in_out_init();
     irq_enable();
@@ -253,4 +251,5 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		RD_mod_in_out_loop();
 	}
 }
+// RD_EDIT: find handle button --> search "RD_EDIT: handle button"
 #endif

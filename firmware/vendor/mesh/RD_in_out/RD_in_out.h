@@ -33,36 +33,31 @@
 #define TOUCH_ACTIVE_POW			0 // 1 is origin ver
 #define TOUCH_NON_ACTIVE_POW		1
 
-#define LED_DIM_OFF_DF 				20
-#define	LED_DIM_ON_DF				90
-
 /*--------------------------- Gpio init ----------------------------------*/
 #define NUM_OF_ELEMENT		 		2
 #define NUM_OF_INPUT				4
-
+#define DETECT_ZERO_PIN				GPIO_PA2
 #define	BT1_PIN						GPIO_PA1
 #define	BT2_PIN						GPIO_PC3
 
-#define INPUT_1						BT1_PIN
-#define INPUT_2						BT1_PIN
-#define INPUT_3						BT1_PIN
-#define INPUT_4						BT1_PIN
+#define INPUT_1						GPIO_PA1
+#define INPUT_2						GPIO_PB7
+#define INPUT_3						GPIO_PC0
+#define INPUT_4						GPIO_PC1
+
+#define ADC_PIN						GPIO_PB6
 
 #define OUTPUT_1					GPIO_PB1
-#define OUTPUT_2					GPIO_PC1
+#define OUTPUT_2					GPIO_PB1
 
 #define RESET_TOUCH_PIN				GPIO_PA1
 
-#define ARR_INPUT_PIN				{INPUT_1,INPUT_1,INPUT_1,INPUT_1}
+#define ARR_INPUT_PIN				{INPUT_1,INPUT_2,INPUT_3,INPUT_4}
 #define ARR_OUTPUT_PIN 				{OUTPUT_1,OUTPUT_2}
 
 #define INPUT_READ(i)				gpio_read(Input_Array[i])
+extern uint32_t Input_Array[];
 
-//#define OUTPUT_EXPAND(i)            OUTPUT_EXPAND_INDIRECT1(i)
-//#define OUTPUT_EXPAND_INDIRECT1(i)            OUTPUT_EXPAND_INDIRECT(i)
-//#define OUTPUT_EXPAND_INDIRECT(i)   OUTPUT_##i
-//#define OUTPUT_WRITE(i,t)           OUTPUT_WRITE_SUB(OUTPUT_EXPAND(i),t)
-//#define OUTPUT_WRITE_SUB(i,t)       gpio_write(i,t)
 #define OUTPUT_WRITE(i,t)            gpio_write(Output_Array[i], t)
 /*--------------------------- type product ----------------------------------*/
 #define TYPE_MAINDEVICE 	 		0x02
@@ -127,10 +122,15 @@ typedef struct {
 	uint8_t Button_K9BOnOff_Pair;
 	uint8_t Pair_K9BHc_Flag;
 	uint16_t Add_K9B_HCSet; // HC set add for K9B remote
-	uint32_t ClockTimeSetHc_ms;
-	uint32_t Clock_BtK9BStartPress_ms[3];
 	uint8_t Bt_K9B_CountPress[3];
+	uint32_t ClockTimeSetHc_ms;
 } Sw_Woring_K9B_Str;
+
+typedef enum
+{
+	UNPAIR = 0,
+	PAIRED,
+}k9b_handle_state_t;
 
 typedef struct {
 	uint32_t MacOld;
@@ -156,19 +156,57 @@ typedef struct {
 	uint8_t Taget;
 } CountDown_Str;
 
+typedef struct
+{
+	int time_delay_100ms;
+	int light;
+}out_stt_t;
+
+typedef enum
+{
+	ON_OFF_BASIS = 0,
+	BLINK_BLINK,
+}mode_led_t;
+
+
+#define MAX_STATE_QUEUE_CALLER 22
+#define	CYCLE_MAX	8
+#define	TIME_DELAY_MAX_100MS	5
+
+#define MAX_STATE_QUEUE_CALLEE 10
+
+typedef struct
+{
+	int light[MAX_STATE_QUEUE_CALLEE];
+	int front;
+	int rear;
+}queue_write_out_t;
+
+typedef struct
+{
+	out_stt_t out_status[MAX_STATE_QUEUE_CALLER];
+	int front;
+	int rear;
+}queue_handle_t;
+
+
+typedef enum
+{
+	SYNC_PRESS_STATE = 0,    // dong bo trang thai giu
+	REVERSE_STATE ,			// dao trang thai giu
+	PRESS_RELEASE_STATE		//
+};
 /*--------------------------- Variable ----------------------------------*/
 
 extern Button_Stt_Type button1_Stt;
 extern Button_Stt_Type button2_Stt;
-extern Button_Stt_Type button3_Stt;
-extern Button_Stt_Type button4_Stt;
-extern Button_Stt_Type button5_Stt;
+
+
+
 
 extern uint8_t Button1_Hold_Flag;
 extern uint8_t Button2_Hold_Flag;
-extern uint8_t Button3_Hold_Flag;
-extern uint8_t Button4_Hold_Flag;
-extern uint8_t Button5_Hold_Flag;
+
 
 extern uint8_t Kick_all_Flag;
 extern Sw_Working_Stt_Str Sw_Working_Stt_Val;
@@ -187,5 +225,26 @@ extern uint8_t Traing_Loop;
 void RD_mod_in_out_init(void);
 void RD_mod_in_out_loop(void);
 void RD_mod_in_out_factory_reset();
+void RD_mod_io_gw_reset(void);
+void RD_SetAndRsp_Switch(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
+void RD_SwitchAC4Ch_ScanB_V2(void);
+void RD_SwitchAC4Ch_UpdateCtr(void);
+void RD_SwitchAC4Ch_ScanReset(void);
+void RD_Set_UpdateStt(uint8_t Relay_ID);
+
+int RD_mod_io_onoff(int light,uint8_t id_ele, int rsp);
+int RD_mod_io_blink(uint8_t cyclce, uint8_t time_ms,uint8_t id_ele);
+void RD_handle_callee_state_out();
+void RD_handle_caller_state_out();
+
+
+void RD_K9B_SaveOnOff(uint32_t macDevice, uint8_t key);
+void RD_K9B_CheckScanK9BHc(uint32_t K9BMac_Buff, uint8_t Num_Of_Button, s8 rssi);
+uint8_t RD_K9B_ScanPress2HC(uint32_t macDevice, uint8_t key, uint32_t par_signature);
+int RD_CheckButtonPosK9BHC(uint8_t ButtonID_Aray[MAX_MUM_K9BPRESSTYPE], uint8_t ButtonID_Check);
+
+void RD_K9B_PairHCSet(uint8_t pairStt, uint16_t K9BAdd);
+void RD_K9B_TimeOutScanK9BHC(void);
+void RD_K9B_ScanPairOnOff(void);
 
 #endif

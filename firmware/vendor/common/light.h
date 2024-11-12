@@ -468,6 +468,7 @@ static inline u16 get_lightness_target(int light_idx)
 	return (get_lightness_from_level(light_g_level_target_get(light_idx, ST_TRANS_LIGHTNESS)));
 }
 
+u8 RD_get_on_off(int idx, int st_trans_type);
 /**
   * @}
   */

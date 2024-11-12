@@ -294,8 +294,8 @@ extern const u8	const_tbl_scanRsp [9] ;
 #define NODE_ID_GET		                0x4680
 #define NODE_ID_SET		                0x4780
 #define NODE_ID_STATUS		            0x4880
-#define NODE_RESET		                0x4980
-#define NODE_RESET_STATUS		        0x4A80
+#define NODE_RESET		                0x4980				//RD_EDIT: reset (kickout fr app step 1)
+#define NODE_RESET_STATUS		        0x4A80				//RD_EDIT: reset (kickout fr app step 2)
 #define SIG_MODEL_APP_GET		        0x4B80
 #define SIG_MODEL_APP_LIST		        0x4C80
 #define VENDOR_MODEL_APP_GET		    0x4D80

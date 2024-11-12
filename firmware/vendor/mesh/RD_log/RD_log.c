@@ -29,3 +29,4 @@ void RD_ev_log(const char *format, ...) {
 	uart_CSend(out);
 //	free(out);
 }
+

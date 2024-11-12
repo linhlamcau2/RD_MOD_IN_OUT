@@ -42,6 +42,9 @@
 #include "pair_provision.h"
 #endif
 
+
+#include "../mesh/RD_in_out/rd_in_out.h"
+
 #if MD_CMR_EN
 #include "controlled_mesh_relay.h"
 #endif
@@ -4044,7 +4047,8 @@ int mesh_par_retrieve(u8 *out, u32 *p_adr, u32 adr_base, u32 size, u32 *p_out_cu
 			continue;
 		}
 	}
-
+	if(adr_base == FLASH_ADR_SW_LEVEL)
+		RD_init_flash_out_handle();
     LOG_MESH_PAR_SAVE_DEBUG(0, 0, "next time record addr: 0x%x", *p_adr);
 	return err;
 	#endif
@@ -4291,6 +4295,7 @@ void mesh_common_retrieve_all()
 		mesh_common_retrieve_by_index(i);
 	}
 	
+//	RD_init_flash_out_handle();
 	#if (DUAL_VENDOR_EN)
     vendor_id_check_and_update();
 	#endif
@@ -6027,6 +6032,9 @@ void mesh_init_all()
 	prov_random_proc(node_ident_random);
     // read parameters
     mesh_flash_retrieve();	// should be first, get unicast addr from config model.
+
+//    RD_init_flash_out_handle();		//RD_INIT: data flash
+
     mesh_key_node_identity_init();// should be after key retrieve .
     provision_random_data_init();
 	mesh_provision_para_init(node_ident_random);

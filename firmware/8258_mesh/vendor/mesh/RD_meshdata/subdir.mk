@@ -4,10 +4,12 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../vendor/mesh/RD_meshdata/rd_meshdata.c 
+../vendor/mesh/RD_meshdata/rd_meshdata.c \
+../vendor/mesh/RD_meshdata/rd_mess_k9b.c 
 
 OBJS += \
-./vendor/mesh/RD_meshdata/rd_meshdata.o 
+./vendor/mesh/RD_meshdata/rd_meshdata.o \
+./vendor/mesh/RD_meshdata/rd_mess_k9b.o 
 
 
 # Each subdirectory must supply rules for building sources it contributes

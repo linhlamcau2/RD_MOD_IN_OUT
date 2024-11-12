@@ -7,7 +7,7 @@
 
 #include "rd_secure.h"
 
-Secure_Stt_Str Secure_Stt_Val;
+Secure_Stt_Str Secure_Stt_Val = {0};
 unsigned char RD_key[16] = "Digital@28112804"; //6B 65 79 52 61 6E 67 44 6F 6E 67 5F 52 6E 44 44
 unsigned char SN_key[16] = "SONGNAM@RAL@1235";
 unsigned char HUE_key[16] = "HUEPRESS@RAL@123"; // 48 55 45 50 52 45 53 53 40 52 41 4c 40 31 32 33
@@ -52,23 +52,6 @@ unsigned char RD_Secure_AesreCheck(uint8_t key[16], uint8_t mac[6], uint16_t uni
 		}
 	}
 	return 1;
-
-	#if 0
-	uart_CSend("\n Key in: ");
-	for(int i=0; i<16; i++)
-	{
-		char UART_TempSend[128];
-		sprintf(UART_TempSend,"0x%x -",compareBuff[i]);
-		uart_CSend(UART_TempSend);
-	}
-	uart_CSend("\n key out: ");
-	for(int i=0; i<16; i++)
-	{
-		char UART_TempSend[128];
-		sprintf(UART_TempSend,"0x%x -",aesEncrypt[i]);
-		uart_CSend(UART_TempSend);
-	}
-	#endif
 }
 //
 //
@@ -131,9 +114,6 @@ void RD_Secure_CheckInit(void)
 	if((Secure_Stt_Val.Secure_Pass == FALSE) && (get_provision_state() == STATE_DEV_PROVED))
 	{
 		uart_CSend("Secure Init fail. reset factory");
-
-		//RD_Sw_FacReset_ByUser();
-//		RD_Switchx4_FactoryReset();
 		RD_mod_in_out_factory_reset();
 	}
 	else uart_CSend("Secure Init pass\n");

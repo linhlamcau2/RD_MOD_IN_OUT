@@ -77,6 +77,8 @@
 #include "vendor/common/sensors_model.h"
 #endif
 
+
+
 #define BLT_RX_FIFO_SIZE        (MESH_DLE_MODE ? DLE_RX_FIFO_SIZE : 64)
 #define BLT_TX_FIFO_SIZE        (MESH_DLE_MODE ? DLE_TX_FIFO_SIZE : 40)
 #if GATT_LPN_EN
@@ -97,6 +99,7 @@ MYFIFO_INIT(blt_txfifo, BLT_TX_FIFO_SIZE, BLT_TX_FIFO_CNT);  // some phones may 
 #endif
 
 
+#include "../mesh/RD_in_out/rd_in_out.h"
 
 // u8		peer_type;
 // u8		peer_mac[12];
@@ -183,10 +186,21 @@ u8 find_mac_in_filter_list(u8 *p_mac)
 }
 #endif
 
-
+//RD_Edit: KP9 Remote Receive
+typedef struct {
+	u8 lengt;
+	u8 type;
+	u16 Vid;
+	u8 frame;
+	u32 Counter;
+	u8 type_device;
+	u8 key;
+	u32 signature;
+}switchKP9_proxy_t;
 //----------------------- handle BLE event ---------------------------------------------
 int app_event_handler (u32 h, u8 *p, int n)
 {
+	static uint32_t signature_last=0;
 	static u32 event_cb_num;
 	event_cb_num++;
 	int send_to_hci = 1;
@@ -201,6 +215,9 @@ int app_event_handler (u32 h, u8 *p, int n)
 		if (subcode == HCI_SUB_EVT_LE_ADVERTISING_REPORT)	// ADV packet
 		{
 			event_adv_report_t *pa = (event_adv_report_t *)p;
+			mesh_cmd_bear_t *p_bear = GET_BEAR_FROM_ADV_PAYLOAD(pa->data);
+			adv_report_extend_t *p_extend = get_adv_report_extend(&p_bear->len);
+
 			#if MD_REMOTE_PROV
 				#if REMOTE_PROV_SCAN_GATT_EN
 			mesh_cmd_conn_prov_adv_cb(pa);// only for the remote gatt-provision proc part.
@@ -208,6 +225,49 @@ int app_event_handler (u32 h, u8 *p, int n)
 			mesh_cmd_extend_loop_cb(pa);
 			#endif
 
+#if(K9B_REMOTE_SUPPORT_ON)
+//			uint8_t UART_TempSend1[128] = {0};
+			switchKP9_proxy_t *KP9_DataRec = (switchKP9_proxy_t*)(pa->data);   //RD_Edit
+
+#if 0 //log thanh
+			//if((KP9_DataRec->type == 0x01)&&(KP9_DataRec->lengt == 0x02)){
+
+			if((KP9_DataRec->type == 0xff)&&(KP9_DataRec->lengt == 0x0e)){
+
+			sprintf(UART_TempSend1,"mac: %x--%x--%x--%x--%x--%x Rssi: %d",pa->mac[0], pa->mac[1], pa->mac[2], pa->mac[3], pa->mac[4], pa->mac[5], p_extend->rssi);
+			uart_CSend(UART_TempSend1);
+			uart_CSend("\n");
+			sprintf(UART_TempSend1,"infor: Vid:%4x- Farme %2x--%x--%x--%x",KP9_DataRec->Counter, KP9_DataRec->frame, KP9_DataRec->type_device, KP9_DataRec->key, KP9_DataRec->signature);
+			uart_CSend(UART_TempSend1);
+			uart_CSend("\n");
+#else
+
+			if((KP9_DataRec->type == 0xff)&&(KP9_DataRec->lengt == 0x0e))
+			{
+
+#endif
+				if( (signature_last != KP9_DataRec->Counter) && ((KP9_DataRec->key & 0x80) != 0x80) )  // only check new rising press
+				{
+					uart_CSend("Button k9B check\n");
+					signature_last = KP9_DataRec->Counter;
+					uint32_t MacK9B_Buff = (uint32_t) ( (pa->mac[0]<<24) | (pa->mac[1]<<16) | (pa->mac[2]<<8) | (pa->mac[3]) );
+					uint8_t key_buff = KP9_DataRec->key;
+
+					/*------Save On off---------------*/
+					RD_K9B_SaveOnOff(MacK9B_Buff, key_buff);
+
+					/*-------Save Scene--------------*/
+					RD_K9B_CheckScanK9BHc(MacK9B_Buff, KP9_DataRec->type_device, p_extend->rssi);
+					/*---------check Scene-----------*/
+					uint8_t scanPressHCStt = RD_K9B_ScanPress2HC(MacK9B_Buff, key_buff, signature_last);
+					if((0 == scanPressHCStt) && ((key_buff & 0x80) != 0x80))
+					{
+						/*------Check control onOff-----------*/
+							RD_K9B_ScanOnOff(MacK9B_Buff, key_buff, signature_last);
+					}
+				}
+			}
+#endif
 			if((LL_TYPE_ADV_IND != (pa->event_type & 0x0F)) || VENDOR_IOS_SOLI_PDU_EN){
 				#if MD_ON_DEMAND_PROXY_EN
 				if(mesh_soli_pdu_handle(pa->data, pa->len)){

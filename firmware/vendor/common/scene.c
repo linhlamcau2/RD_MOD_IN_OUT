@@ -33,6 +33,7 @@
 #include "lighting_model_LC.h"
 #include "scene.h"
 
+#include "../mesh/RD_in_out/rd_in_out.h"
 
 #if (MD_SCENE_EN)
 model_scene_t	model_sig_scene;
@@ -373,6 +374,7 @@ int mesh_cmd_sig_scene_recall(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par)
 		if(p_recall->id == p->id){
 			st = SCENE_ST_SUCCESS;
 			if(!cb_par->retransaction){
+				RD_Set_UpdateStt(1); //RD_EDIT: set update Stt.
 				CB_NL_PAR_NUM_2(p_nl_scene_server_state_recalled, p_recall->id, (u8 *)&model_sig_scene.data[cb_par->model_idx][i].nl_data);
     			mesh_cmd_g_level_set_t level_set_tmp = {0};
 
