@@ -25,16 +25,21 @@
 
 #define RD_OPCODE_TYPE_SEND				(0xE0)
 #define RD_OPCODE_TYPE_RSP				(0xE1)
+
 #define RD_HEADER_SET_TYPE_DEVICE		(0x0001)
 #define RD_HEADER_SAVE_GW_ADD			(0x0002)
 #define RD_HEADER_RSP_TYPE_DEVICE		(0x0003)
 #define RD_HEADER_FACTORY_TEST_END		(0x0004)
 #define RD_HEADER_KICK_ALL				(0xFFFF)
 
-#define RD_HEADER_SETTING_INPUT				(0x020f)
-#define RD_HEADER_LINKED_INPUT				(0x030f)
+#define RD_HEADER_INPUT_STATUS				(0x0115)
+#define RD_HEADER_ADC_STATUS				(0x0215)
+#define RD_HEADER_SETTING_INPUT				(0x0315)
+#define RD_HEADER_LINKER_INPUT				(0x0415)
+#define RD_HEADER_SETTING_SENCE_INPUT		(0x0515)
+#define RD_HEADER_STATUS_ALL_INPUT			(0x0615)
+
 #define RD_HEADER_RELAY_STARTUP				(0x100b)
-#define RD_HEADER_SETTING_SENCE_INPUT		(0x040f)
 
 #define RD_OPCODE_SCENE_SEND			(0xE2)
 #define RD_OPCODE_SCENE_RSP				(0xE3)
@@ -44,39 +49,12 @@
 
 #define MANY_HEADER_EN					1
 
-#define RD_HEADER_CONTROL_SWITCH4TOUCH		(0x000B)
-#define RD_HEADER_SWITCH4TOUCH_STT			(0x090B)
-#define RD_HEADER_SW4TOUCH_TRAIN			(0x040B)
-#define RD_HEADER_SW4_RGB_CONFIG			(0x050B)
-#define RD_HEADER_SW4_SETUP_LINKCTR			(0x060B)
-#define RD_HEADER_SW4_SETUP_COUNT_DOWN		(0x070B)
 
-#define RD_HEADER_SENSOR_SW4T_STT			(0x000B)  // 0x52
-
-#define RD_HEADER_CONTROL_SW_TOUCH			RD_HEADER_CONTROL_SWITCH4TOUCH
-#define RD_HEADER_SWITCH_TOUCH_STT			RD_HEADER_SWITCH4TOUCH_STT
-#define RD_HEADER_SW_TOUCH_TRAIN			RD_HEADER_SW4TOUCH_TRAIN
-#define RD_HEADER_SW_RGB_CONFIG				RD_HEADER_SW4_RGB_CONFIG
-#define RD_HEADER_SW_SETUP_LINKCTR			RD_HEADER_SW4_SETUP_LINKCTR
-#define RD_HEADER_SW_SETUP_COUNT_DOWN		RD_HEADER_SW4_SETUP_COUNT_DOWN
-
-#define RD_HEADER_REUP_STT					(0x080B)
-#define RD_HEADER_CTRALL_REUP_STT			(0x110B)
-#define RD_HEADER_SET_K9B_LOCAL_MODE		(0x120B)
-#define RD_HEADER_INPUT_STT					(0x010f)
-
-#define RD_HEADER_SW_PAIR_K9BREMOTE			(0x0A0B)
-#define RD_HEADER_SW_SAVESCENE_K9BREMOTE	(0x0C0B)
-#define RD_HEADER_SW_K9B_PRESS				(0x0B0B)
-#define RD_HEADER_SW_SAVEK9BHC				(0x0D0B)
-#define RD_HEADER_SW_DELETEK9BHC			(0x0E0B)
-#define RD_HEADER_SW_DELETESCENE_K9BREMOTE	(0x0F0B)
-#define RD_HEADER_SW_POWUP_CONFIG			(0x100B)
 
 #define RD_AUTO_CREATE_GR					(0x0C0A)
 #define RD_AUTO_DELETE_GR					(0x0D0A)
 
-#define RD_HEADER_SENSOR_SWT_STT			RD_HEADER_SENSOR_SW4T_STT
+
 
 #define RD_OPCODE_POWER 						(0x0001)
 
@@ -218,5 +196,12 @@ void RD_Handle_K9BDeleteScene(uint8_t par[8], uint16_t Gw_Add_Buff);
 void RD_Handle_SaveK9BHc(uint8_t par[8], uint16_t Gw_Add_Buff);
 void RD_Handle_DeleteK9BHC(uint8_t par[8], uint16_t Gw_Add_Buff);
 void RD_Handle_K9BLocalModeConfig(u8 *par, uint16_t Gw_Add_Buff);
+
+
+void rd_update_input_stt(u8 idx_in, u8 status_in, u16 sence);
+
+void rd_init_queue_rsp();
+void rd_call_tx(u16 op_code, u8 *par, u16 par_len, u16 addr_dst);
+void rd_handle_tx();
 
 #endif /* RD_MESSDATA_H_ */

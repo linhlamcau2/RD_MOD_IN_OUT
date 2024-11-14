@@ -68,9 +68,6 @@ static out_stt_t get_ele_queue(uint8_t id_ele)
 	}
 	else
 		q->front ++;
-//	u32 time = clock_time_100ms();
-//	RD_ev_log("delete queue caller: %d %d %d\n",out_stt.light,out_stt.time_delay_100ms,time);
-////	sleep_ms(50);
 	return out_stt;
 }
 
@@ -102,17 +99,21 @@ int RD_mod_io_blink(uint8_t cyclce, uint8_t time_ms,uint8_t id_ele)
 	return 0;
 }
 
+void rd_toggle_output(uint8_t id_ele, int rsp)
+{
+	u8 state = RD_get_on_off(id_ele,0);
+	u8 toggle = (state > 0) ? 0:1;
+	RD_mod_io_onoff(toggle,id_ele,rsp);
+}
+
 int RD_mod_io_onoff(int light,uint8_t id_ele, int rsp)
 {
-//	if(is_full(id_ele) != 0)
-//		return -1;
 	RD_ev_log("mode on off \n");
 	out_stt_t out_state;
 	out_state.light = light;
 	out_state.time_delay_100ms = 0;
 	if(add_ele_queue(out_state,id_ele) == -1)
 		return -1;
-//	RD_ev_log("add_ele_queue \n");
 	if(rsp == 1)
 	{
 		RD_SetAndRsp_Switch(id_ele,light,RD_GATEWAYADDRESS);

@@ -36,6 +36,7 @@
 /*--------------------------- Gpio init ----------------------------------*/
 #define NUM_OF_ELEMENT		 		2
 #define NUM_OF_INPUT				4
+
 #define DETECT_ZERO_PIN				GPIO_PA2
 #define	BT1_PIN						GPIO_PA1
 #define	BT2_PIN						GPIO_PC3
@@ -47,15 +48,27 @@
 
 #define ADC_PIN						GPIO_PB6
 
-#define OUTPUT_1					GPIO_PB1
-#define OUTPUT_2					GPIO_PB1
+#define OUTPUT_1					GPIO_PC2
+#define OUTPUT_2					GPIO_PC3
 
+#define BUTTON_RESET 				GPIO_PD2
+
+#define LED_1						GPIO_PB1
+#define LED_2						GPIO_PB5
+#define LED_3						GPIO_PC4
+#define LED_4						GPIO_PB4
+#define LED_5						GPIO_PD4
+#define LED_6						GPIO_PD3
+
+#define BUZZER						GPIO_PA7
 #define RESET_TOUCH_PIN				GPIO_PA1
 
 #define ARR_INPUT_PIN				{INPUT_1,INPUT_2,INPUT_3,INPUT_4}
 #define ARR_OUTPUT_PIN 				{OUTPUT_1,OUTPUT_2}
+#define ARR_LED						{LED_1,LED_2,LED_3,LED_4,LED_5,LED_6}
 
 #define INPUT_READ(i)				gpio_read(Input_Array[i])
+#define RD_IN_READ(i)				INPUT_READ(i)
 extern uint32_t Input_Array[];
 
 #define OUTPUT_WRITE(i,t)            gpio_write(Output_Array[i], t)
@@ -94,7 +107,7 @@ typedef enum {
 } RD_Result_Type;
 
 typedef enum {
-	RD_PowUpOff = 0x00, RD_PowUpOn = 0x01, RD_PowUpStore = 0x02
+	RD_PowUpOff = 0x00, RD_PowUpOn = 0x01, RD_PowUpStore = 0x02, RD_POW_SET_MAX = RD_PowUpStore,
 } RD_PowUp_Type;
 
 typedef enum {
@@ -190,11 +203,25 @@ typedef struct
 }queue_handle_t;
 
 
-typedef enum
+enum
 {
-	SYNC_PRESS_STATE = 0,    // dong bo trang thai giu
-	REVERSE_STATE ,			// dao trang thai giu
-	PRESS_RELEASE_STATE		//
+	SYNC_PRESS_STATE = 0,    // dong bo trang thai giu		// dao trang thai giu
+	PRESS_RELEASE_STATE,		//
+	INPUT_STATE_MAX = PRESS_RELEASE_STATE,
+};
+
+enum
+{
+	MODE_ON = 0,
+	MODE_OFF,
+	MODE_PULSING,
+	MODE_MAX = MODE_PULSING,
+};
+
+enum
+{
+	TYPE_IN = 1,
+	TYPE_ADC,
 };
 /*--------------------------- Variable ----------------------------------*/
 
@@ -232,6 +259,7 @@ void RD_SwitchAC4Ch_UpdateCtr(void);
 void RD_SwitchAC4Ch_ScanReset(void);
 void RD_Set_UpdateStt(uint8_t Relay_ID);
 
+void rd_toggle_output(uint8_t id_ele, int rsp);
 int RD_mod_io_onoff(int light,uint8_t id_ele, int rsp);
 int RD_mod_io_blink(uint8_t cyclce, uint8_t time_ms,uint8_t id_ele);
 void RD_handle_callee_state_out();
@@ -246,5 +274,12 @@ int RD_CheckButtonPosK9BHC(uint8_t ButtonID_Aray[MAX_MUM_K9BPRESSTYPE], uint8_t 
 void RD_K9B_PairHCSet(uint8_t pairStt, uint16_t K9BAdd);
 void RD_K9B_TimeOutScanK9BHC(void);
 void RD_K9B_ScanPairOnOff(void);
+
+
+void rd_set_update_in_stt();
+void rd_check_update_in_stt();
+
+u16 get_adc_value();
+u8 get_status_input(u8 idx);
 
 #endif

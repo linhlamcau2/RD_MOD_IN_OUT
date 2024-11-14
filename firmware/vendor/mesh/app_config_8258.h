@@ -136,13 +136,13 @@ extern "C" {
 	#define ADC_INPUT_PCHN					C5P    //corresponding  ADC_InputPchTypeDef in adc.h
 #endif
 
-#define ADC_ENABLE		0
+#define ADC_ENABLE		1
 #if ADC_ENABLE
 #define ADC_BASE_MODE	1	//GPIO voltage
 #define ADC_VBAT_MODE	2	//Battery Voltage
 
-#define ADC_MODE		ADC_VBAT_MODE
-#define ADC_CHNM_ANA_INPUT 		GPIO_PB3 // one of ADC_GPIO_tab[]
+#define ADC_MODE		ADC_BASE_MODE
+#define ADC_CHNM_ANA_INPUT 		GPIO_PB6 // one of ADC_GPIO_tab[]  //RD_EDIT: adc_init
 #define ADC_PRESCALER	ADC_PRESCALER_1F8
 #endif
 

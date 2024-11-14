@@ -24,7 +24,7 @@
 #define FLASH_DATA_POWER_OFF_SIZE		9
 #define SCENE_MAX 						5
 #define NUM_ELEMENT						2
-
+#define NUM_OUT							4
 typedef struct
 {
   uint32_t MacK9B[MAX_NUM_K9ONOFF];
@@ -68,12 +68,26 @@ typedef struct
 
 typedef struct
 {
-	uint8_t Factory_Check;
-	uint8_t Future[3];
-	uint8_t Secure_RD;
-	uint8_t PowerUpStt;
-	uint16_t Gw_Add;
-	uint8_t input_setting[NUM_OF_INPUT];
+	u8 mode;
+	u8 stt_sence;
+	u16 id_sence;
+}input_inf_t;
+
+typedef struct
+{
+	u16 adc_threshold;
+	u16 id_sence;
+}adc_inf_t;
+typedef struct
+{
+	u8 Factory_Check;
+	u8 Future[3];
+	u8 Secure_RD;
+	u8 PowerUpStt;
+	u16 Gw_Add;
+	input_inf_t input_setting[NUM_OUT];
+	adc_inf_t adc_setting;
+	u8 output_linked[NUM_ELEMENT];
 } Sw_Flash_Data;
 
 extern Sw_Flash_Data Sw_Flash_Data_Val;
@@ -98,6 +112,15 @@ void RD_Flash_K9BSaveLocalMode(uint8_t local_mode);
 void RD_Flash_DeleteAllK9BOnOff(uint8_t SwButtonID);
 
 
-void rd_handle_setting_input(u8 *par, u16 gw_addr);
+u8 rd_save_mode_input(u8 idx, u8 mode);
+u8 rd_save_linked_io(u8 idx_in,u8 idx_out);
+u8 rd_save_powerup_cf(u8 pow_cf);
+//void rd_handle_setting_link(u8 *par,int par_len, u16 gw_addr);
+//void rd_handle_powerup_cf(u8 *par,int par_len, u16 gw_addr);
+//void rd_handle_setting_sence_input(u8 *par,int par_len, u16 gw_addr);
+//void rd_handle_rsp_sence_input(u8 *par,int par_len, u16 gw_addr);
+
+u8 get_mode_setting_input(u8 idx);
+u8 get_ele_linked(u8 idx);
 #endif
 

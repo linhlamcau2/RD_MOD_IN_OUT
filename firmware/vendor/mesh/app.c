@@ -225,9 +225,9 @@ int app_event_handler (u32 h, u8 *p, int n)
 			mesh_cmd_extend_loop_cb(pa);
 			#endif
 
-#if(K9B_REMOTE_SUPPORT_ON)
+//#if(K9B_REMOTE_SUPPORT_ON)
 //			uint8_t UART_TempSend1[128] = {0};
-			switchKP9_proxy_t *KP9_DataRec = (switchKP9_proxy_t*)(pa->data);   //RD_Edit
+//			switchKP9_proxy_t *KP9_DataRec = (switchKP9_proxy_t*)(pa->data);   //RD_Edit
 
 #if 0 //log thanh
 			//if((KP9_DataRec->type == 0x01)&&(KP9_DataRec->lengt == 0x02)){
@@ -242,31 +242,31 @@ int app_event_handler (u32 h, u8 *p, int n)
 			uart_CSend("\n");
 #else
 
-			if((KP9_DataRec->type == 0xff)&&(KP9_DataRec->lengt == 0x0e))
-			{
-
-#endif
-				if( (signature_last != KP9_DataRec->Counter) && ((KP9_DataRec->key & 0x80) != 0x80) )  // only check new rising press
-				{
-					uart_CSend("Button k9B check\n");
-					signature_last = KP9_DataRec->Counter;
-					uint32_t MacK9B_Buff = (uint32_t) ( (pa->mac[0]<<24) | (pa->mac[1]<<16) | (pa->mac[2]<<8) | (pa->mac[3]) );
-					uint8_t key_buff = KP9_DataRec->key;
-
-					/*------Save On off---------------*/
-					RD_K9B_SaveOnOff(MacK9B_Buff, key_buff);
-
-					/*-------Save Scene--------------*/
-					RD_K9B_CheckScanK9BHc(MacK9B_Buff, KP9_DataRec->type_device, p_extend->rssi);
-					/*---------check Scene-----------*/
-					uint8_t scanPressHCStt = RD_K9B_ScanPress2HC(MacK9B_Buff, key_buff, signature_last);
-					if((0 == scanPressHCStt) && ((key_buff & 0x80) != 0x80))
-					{
-						/*------Check control onOff-----------*/
-							RD_K9B_ScanOnOff(MacK9B_Buff, key_buff, signature_last);
-					}
-				}
-			}
+//			if((KP9_DataRec->type == 0xff)&&(KP9_DataRec->lengt == 0x0e))
+//			{
+//
+//#endif
+//				if( (signature_last != KP9_DataRec->Counter) && ((KP9_DataRec->key & 0x80) != 0x80) )  // only check new rising press
+//				{
+//					uart_CSend("Button k9B check\n");
+//					signature_last = KP9_DataRec->Counter;
+//					uint32_t MacK9B_Buff = (uint32_t) ( (pa->mac[0]<<24) | (pa->mac[1]<<16) | (pa->mac[2]<<8) | (pa->mac[3]) );
+//					uint8_t key_buff = KP9_DataRec->key;
+//
+//					/*------Save On off---------------*/
+//					RD_K9B_SaveOnOff(MacK9B_Buff, key_buff);
+//
+//					/*-------Save Scene--------------*/
+//					RD_K9B_CheckScanK9BHc(MacK9B_Buff, KP9_DataRec->type_device, p_extend->rssi);
+//					/*---------check Scene-----------*/
+//					uint8_t scanPressHCStt = RD_K9B_ScanPress2HC(MacK9B_Buff, key_buff, signature_last);
+//					if((0 == scanPressHCStt) && ((key_buff & 0x80) != 0x80))
+//					{
+//						/*------Check control onOff-----------*/
+//							RD_K9B_ScanOnOff(MacK9B_Buff, key_buff, signature_last);
+//					}
+//				}
+//			}
 #endif
 			if((LL_TYPE_ADV_IND != (pa->event_type & 0x0F)) || VENDOR_IOS_SOLI_PDU_EN){
 				#if MD_ON_DEMAND_PROXY_EN

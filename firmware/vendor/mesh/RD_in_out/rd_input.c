@@ -1,194 +1,168 @@
 #include "rd_in_out.h"
 
 static uint8_t Reset_Count_Buff = 0;
+static u8 input_count[NUM_OF_INPUT] = {0};
+static u8 rd_input_state[NUM_OF_INPUT] = {0};
+static uint8_t buttonSttBuff[NUM_OF_INPUT] = { 0 };
+
+static u16 adc_value = 0xffff;
+static int need_update = 0;
+u32 last_time_update_input_stt = 0;
 
 
-void RD_SwitchAC4Ch_CheckHold(void)
+typedef u8 (*handle_detect_input_t)(u8 id);
+typedef u8 (*handle_input_t)(u8 id);
+
+typedef struct
 {
-	static uint16_t Count_BuffBT1, Count_BuffBT2;
-	static bool4 Flag_Print1 = 0, Flag_Print2= 0;
-//--------------------BUTTON 1 --------------------//
-	if(button1_Stt == Button_Keeping)
+	u8 mode;
+	handle_detect_input_t detect_handler;
+	handle_input_t handler;
+}input_ctr_t;
+
+u16 get_adc_value()
+{
+	return adc_value;
+}
+u8 get_status_input(u8 idx)
+{
+	if(idx < NUM_OF_INPUT)
 	{
-//		uart_CSend("BT1 Keep\n");
-		Count_BuffBT1++;
-		if(Count_BuffBT1>= 50000) Count_BuffBT1=50000;
-		if(Count_BuffBT1 >= TIME_HOLD_BT)
-		{
-
-			if(Flag_Print1 == 0)
-			{
-				Button1_Hold_Flag =1;
-				Flag_Print1=1;
-			    uart_CSend("BT1 Hold\n");
-			}
-		}
-
+		return rd_input_state[idx];
 	}
-	else
+	return 0xff;
+}
+
+u8 rd_handle_input_press(u8 idx)
+{
+	rd_set_update_in_stt();
+	u8 idx_ele = get_ele_linked(idx);
+	if(idx_ele != 0xff )
 	{
-		Count_BuffBT1=0;
-		Flag_Print1=0;
+		rd_toggle_output(idx_ele,1);
 	}
+	return 0;
+}
 
+u8 rd_handle_input_asyn(u8 idx)
+{
+	u8 status = rd_input_state[idx];
+	u16 sence = get_sence_input(idx);
 
-	//--------------------BUTTON 2 --------------------//
-	if(button2_Stt == Button_Keeping)
+	rd_update_input_stt(idx,status_in,sence);
+	rd_set_update_in_stt();
+	u8 idx_ele = get_ele_linked(idx);
+	if(idx_ele != 0xff )
 	{
-		Count_BuffBT2++;
-		if(Count_BuffBT2>= 50000) Count_BuffBT2=50000;
-		if(Count_BuffBT2 >= TIME_HOLD_BT)
-		{
-
-			if(Flag_Print2 == 0)
-			{
-				Button2_Hold_Flag =1;
-				Flag_Print2=1;
-			    uart_CSend("BT2 Hold\n");
-			}
-		}
+		RD_mod_io_onoff(rd_input_state[idx],idx_ele,1);
 	}
-	else
-	{
-		Count_BuffBT2=0;
-		Flag_Print2=0;
-	}
+	return 0;
 }
 //
+u8 rd_detect_press(u8 id)
+{
+	if (RD_IN_READ(id) == 0)
+	{
+		input_count[id]++;
+		if (input_count[id] == CYCLE_ACTIVE_BUTTON)
+		{
+			buttonSttBuff[id] = 1;
+		}
+		if (input_count[id] >= (CYCLE_ACTIVE_BUTTON + 1))
+		{
+			input_count[id] = CYCLE_ACTIVE_BUTTON + 1;
+		}
+	}
+	else
+	{
+		input_count[id] = 0;
+		buttonSttBuff[id] = 0;
+	}
+
+	//------------------update input status------------------------//
+	if ((buttonSttBuff[id] == 1) && (input_count[id] < CYCLE_ACTIVE_BUTTON + 1))
+	{
+		RD_ev_log("but %d press\n",id);
+		rd_input_state[id] = Button_Press;
+		return 1;
+	}
+	else if (buttonSttBuff[id] == 0)
+	{
+		rd_input_state[id] = Button_None;
+		return 0;
+	}
+	return 0;
+}
+
+u8 rd_detect_level(u8 id)
+{
+	u8 stt = RD_IN_READ(id);
+	if(rd_input_state[id] != stt)
+	{
+		input_count[id]++;
+		if (input_count[id] == CYCLE_ACTIVE_BUTTON)
+		{
+			buttonSttBuff[id] = 1;
+		}
+		if (input_count[id] >= (CYCLE_ACTIVE_BUTTON + 1))
+		{
+			input_count[id] = CYCLE_ACTIVE_BUTTON + 1;
+		}
+	}
+	else
+	{
+		input_count[id] = 0;
+		buttonSttBuff[id] = 0;
+	}
+	if ((buttonSttBuff[id] == 1))
+	{
+		RD_ev_log("in %d change logic %d",id,stt);
+		rd_input_state[id] = stt;
+		return 1;
+	}
+	return 0;
+}
+
+
+
+static input_ctr_t in_handle_arr[] ={
+		{SYNC_PRESS_STATE, rd_detect_level,rd_handle_input_asyn},
+		{PRESS_RELEASE_STATE,rd_detect_press,rd_handle_input_press},
+};
+
 void RD_SwitchAC4Ch_ScanB_V2(void)
 {
-	static uint8_t Bt1_Count_Buff = 0;
-	static uint8_t Bt2_Count_Buff = 0;
-
-	static uint8_t buttonSttBuff[2] = { 0 };
-	if (INPUT_READ(0) == 0)
+	for (u8 i = 0; i<NUM_OF_INPUT; i++)
 	{
-		Bt1_Count_Buff++;
-		if (Bt1_Count_Buff == CYCLE_ACTIVE_BUTTON)
+		u8 stt = get_mode_setting_input(i);
+		for( u8 j= 0; j<sizeof(in_handle_arr) /sizeof(in_handle_arr[0]) ; j++)
 		{
-			buttonSttBuff[0] = 1;
-		}
-		if (Bt1_Count_Buff >= (CYCLE_ACTIVE_BUTTON + 1))
-		{
-			Bt1_Count_Buff = CYCLE_ACTIVE_BUTTON + 1;
-		}
-	}
-	else
-	{
-		Bt1_Count_Buff = 0;
-		buttonSttBuff[0] = 0;
-	}
-
-	//------------------update BT1 status------------------------//
-	if ((buttonSttBuff[0] == 1) && (button1_Stt == Button_None))
-	{
-		uart_CSend("Bt 1 Press \n");
-		button1_Stt = Button_Press;
-	}
-	else if (buttonSttBuff[0] == 0)
-	{
-		if (button1_Stt == Button_Keeping)
-		{
-			uart_CSend("Reset bt Stt \n");
-		}
-		button1_Stt = Button_None;
-	}
-	if (INPUT_READ(1) == 0)
-	{
-		Bt2_Count_Buff++;
-		if (Bt2_Count_Buff == CYCLE_ACTIVE_BUTTON)
-		{
-			//uart_CSend("BT2 On \n");
-			buttonSttBuff[1] = 1;
-		}
-		if (Bt2_Count_Buff >= (CYCLE_ACTIVE_BUTTON + 1)) {
-			Bt2_Count_Buff = CYCLE_ACTIVE_BUTTON + 1;
+			if(stt == in_handle_arr[j].mode)
+			{
+				u8 err = in_handle_arr[j].detect_handler(i);
+				if(err)
+				{
+					in_handle_arr[j].handler(i);
+				}
+				break;
+			}
 		}
 	}
-	else
-	{
-		Bt2_Count_Buff = 0;
-		buttonSttBuff[1] = 0;
-	}
-
-	//------------------update BT2 status------------------------//
-	if ((buttonSttBuff[1] == 1) && (button2_Stt == Button_None))
-	{
-		uart_CSend("Bt 2 Press \n");
-		button2_Stt = Button_Press;
-	}
-	else if (buttonSttBuff[1] == 0)
-	{
-		if (button2_Stt == Button_Keeping)
-		{
-			uart_CSend("Reset bt Stt \n");
-		}
-		button2_Stt = Button_None;
-	}
-	RD_SwitchAC4Ch_CheckHold();
-	/*------------------------------- Check Hold Button-------------------------------*/
 }
-//
-//void RD_Socket_WaitDetechZero(void)
-//{
-//	uint16_t overTimeBuff =0;
-//	uint8_t detectRezoState_Buff, detectRezoState_Past_Buff, detectRezoState_Unnoise_Buff,  detectRezoState_Unnoise_Buff2;
-//	detectRezoState_Unnoise_Buff = detectRezoState_Past_Buff = detectRezoState_Buff = gpio_read(DETECT_ZERO_PIN);
-//	do
-//	{
-//		overTimeBuff ++;
-//		detectRezoState_Past_Buff = gpio_read(DETECT_ZERO_PIN);
-//		sleep_us(50);
-//		detectRezoState_Buff = gpio_read(DETECT_ZERO_PIN);
-//
-//		sleep_us(500);
-//
-//		detectRezoState_Unnoise_Buff = gpio_read(DETECT_ZERO_PIN);
-//		sleep_us(50);
-//		detectRezoState_Unnoise_Buff2 = gpio_read(DETECT_ZERO_PIN);
-//		if(overTimeBuff>=NUM_CHECK_DETECH_MAX)
-//		{
-//			uart_CSend("break \n");
-//			break;
-//		}
-//	}
-//	while( !( (detectRezoState_Past_Buff != 0) && (detectRezoState_Buff != 0) && (detectRezoState_Unnoise_Buff == 0) && (detectRezoState_Unnoise_Buff2 ==0)) );
-//}
-//
-//void RD_SwitchAC4Ch_OnOffZero(GPIO_PinTypeDef RelayPin, Relay_Stt_Type OnOff_State)
-//{
-//
-//	#if (METHOD_DETECT_ZERO == DETECT_ZERO_BY_FAILING)
-//		RD_Socket_WaitDetechZero();
-//		if(OnOff_State == Relay_On)
-//		{
-//			sleep_us(TIME_DETECT_ON);  // for switch 1-2-3-4 4700
-//		}
-//		else
-//			sleep_us(TIME_DETECT_OFF);    // for switch 1-2-3-4 3200
-//	#endif
-//	gpio_write(RelayPin, OnOff_State);
-//}
-//
-void RD_SwitchAC4Ch_UpdateCtr(void)
+
+
+
+void reset_detect_input(u8 id)
 {
-	/*--------------------update Relay Stt------------------	 */
-	if(button1_Stt == Button_Press)
+	input_count[id] = 0;
+	buttonSttBuff[id] = 0;
+}
+
+void reset_all_detect_input(u8 id)
+{
+	for(int i =0; i<NUM_OF_INPUT; i++)
 	{
-		uart_CSend("BT1 To Keep\n");
-		button1_Stt = Button_Keeping;
-		u8 state = RD_get_on_off(0,0);
-		u8 toggle = (state > 0) ? 0:1;
-		RD_mod_io_onoff(toggle, 0,1);
-//		RD_Call_LinkControl(1, relay_Stt[0]);
-	}
-	if(button2_Stt == Button_Press)
-	{
-		button2_Stt = Button_Keeping;
-		u8 state = RD_get_on_off(1,0);
-		u8 toggle = (state > 0) ? 0:1;
-		RD_mod_io_onoff(toggle, 1,1);
-//		RD_Call_LinkControl(2, relay_Stt[1]);
+		reset_detect_input(i);
 	}
 }
 
@@ -211,33 +185,31 @@ void RD_ScanKickAll(void)
 	}
 }
 
-void RD_SwitchAC4Ch_ScanReset(void)
+
+void rd_check_update_in_stt()
 {
-	/*--------------------------Factory Reset------------------------*/
-
-//	static uint16_t checkTimeBuff2=0;
-
-	if((Button1_Hold_Flag + Button2_Hold_Flag) == 2)
-		{
-			RD_ev_log("call hold 2 but,Reset_Count_Buff: %d \n",Reset_Count_Buff);
-			RD_mod_in_out_factory_reset();
-//			checkTimeBuff2=0;
-			Reset_Count_Buff++;
-			Button1_Hold_Flag=0;
-			Button2_Hold_Flag=0;
-		}
-//	else
-//	{
-//		checkTimeBuff2++;
-//		if(checkTimeBuff2 >= TIME_OUT_RESET)
-//		{
-//			checkTimeBuff2=TIME_OUT_RESET;
-//			Reset_Count_Buff=0;
-//		}
-//	}
-	if(Reset_Count_Buff == 3 ||   ( (reset_Mess_Flag== 1) && (get_provision_state() == STATE_DEV_UNPROV)) )
+	if(need_update == 1)
 	{
-		RD_mod_in_out_factory_reset();
+		RD_ev_log("update stt\n");
+//		rd_update_input_stt(rd_input_state,adc_value,NUM_OF_INPUT);
+		last_time_update_input_stt = clock_time_ms();
+		need_update = 0;
 	}
-	RD_ScanKickAll();
+	if(need_update > 0)
+	{
+		if(clock_time_ms() - last_time_update_input_stt > 500)
+		{
+			need_update = 0;
+		}
+	}
+}
+
+void rd_set_update_in_stt()
+{
+	need_update ++;
+}
+
+void rd_read_adc()
+{
+	adc_value = adc_sample_and_get_result();
 }
