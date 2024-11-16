@@ -1,17 +1,18 @@
 #include "rd_queue.h"
 
+
 void rd_initQueue(rd_queue_t *q, int maxSize, int elementSize, void *dataArray)
 {
     q->data = dataArray;
-    q->front = 0;
-    q->rear = -1;
+    q->front = -1;
+    q->rear = 0;
     q->maxSize = maxSize;
     q->elementSize = elementSize;
 }
 
 int isQueueEmpty(rd_queue_t *q)
 {
-    return (q->rear == -1);
+    return (q->front == -1);
 }
 
 int isQueueFull(rd_queue_t *q)
@@ -25,7 +26,7 @@ int rd_enqueue(rd_queue_t *q, void *element)
     {
         return -1;
     }
-    if (q->rear == -1)
+    if (isQueueEmpty(q))
     {
         q->rear = 0;
         q->front = 0;
@@ -35,6 +36,7 @@ int rd_enqueue(rd_queue_t *q, void *element)
         q->rear = (q->rear + 1) % q->maxSize;
     }
     memcpy((void *)((char*)q->data + q->rear * q->elementSize), element, q->elementSize);
+    RD_ev_log("enqueue rear: %d,front: %d\n",q->rear,q->front);
     return 0;
 }
 
@@ -48,7 +50,7 @@ int rd_dequeue(rd_queue_t *q, void *element)
 
     if (q->front == q->rear)
     {
-        q->rear = -1;
+        q->front = -1;
     }
     else
     {

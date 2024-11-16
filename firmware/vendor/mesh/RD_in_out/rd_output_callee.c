@@ -86,7 +86,7 @@ void RD_handle_callee_state_out()
 			if(light_level != -1)
 			{
 				u8 state = (light_level > 0)? 0: 1;
-//				RD_ev_log("state callee: %d",state);
+				RD_ev_log("state callee: %d",state);
 				OUTPUT_WRITE(i,state);
 //				if(get_provision_state() != STATE_DEV_PROVED)  RD_Flash_SavePowerOff();
 			}

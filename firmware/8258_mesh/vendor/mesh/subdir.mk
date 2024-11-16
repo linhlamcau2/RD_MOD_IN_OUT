@@ -7,13 +7,15 @@ C_SRCS += \
 ../vendor/mesh/app.c \
 ../vendor/mesh/app_att.c \
 ../vendor/mesh/app_ui.c \
-../vendor/mesh/main.c 
+../vendor/mesh/main.c \
+../vendor/mesh/rd_queue.c 
 
 OBJS += \
 ./vendor/mesh/app.o \
 ./vendor/mesh/app_att.o \
 ./vendor/mesh/app_ui.o \
-./vendor/mesh/main.o 
+./vendor/mesh/main.o \
+./vendor/mesh/rd_queue.o 
 
 
 # Each subdirectory must supply rules for building sources it contributes

@@ -77,6 +77,7 @@ typedef struct
 {
 	u16 adc_threshold;
 	u16 id_sence;
+	u8 type;
 }adc_inf_t;
 typedef struct
 {
@@ -115,6 +116,10 @@ void RD_Flash_DeleteAllK9BOnOff(uint8_t SwButtonID);
 u8 rd_save_mode_input(u8 idx, u8 mode);
 u8 rd_save_linked_io(u8 idx_in,u8 idx_out);
 u8 rd_save_powerup_cf(u8 pow_cf);
+u8 rd_save_sence_in(u8 idx_in, u8 stt_sence,u16 id_sence);
+u8 rd_save_sence_adc(u16 adc_threshold, u16 id_sence,u8 type);
+u8 rd_check_state_adc(u16 adc_value);
+
 //void rd_handle_setting_link(u8 *par,int par_len, u16 gw_addr);
 //void rd_handle_powerup_cf(u8 *par,int par_len, u16 gw_addr);
 //void rd_handle_setting_sence_input(u8 *par,int par_len, u16 gw_addr);
@@ -122,5 +127,10 @@ u8 rd_save_powerup_cf(u8 pow_cf);
 
 u8 get_mode_setting_input(u8 idx);
 u8 get_ele_linked(u8 idx);
+u16 get_adc_sence();
+u16 get_adc_threshold();
+u16 get_sence_input(u8 idx);
+u8 get_stt_sence(u8 idx);
+
 #endif
 

@@ -197,11 +197,14 @@ void RD_Handle_SaveK9BHc(uint8_t par[8], uint16_t Gw_Add_Buff);
 void RD_Handle_DeleteK9BHC(uint8_t par[8], uint16_t Gw_Add_Buff);
 void RD_Handle_K9BLocalModeConfig(u8 *par, uint16_t Gw_Add_Buff);
 
+void RD_Call_Scene(uint16_t Scene_ID, uint8_t Mess_ID);
 
 void rd_update_input_stt(u8 idx_in, u8 status_in, u16 sence);
 
 void rd_init_queue_rsp();
 void rd_call_tx(u16 op_code, u8 *par, u16 par_len, u16 addr_dst);
 void rd_handle_tx();
+void rd_call_tx2(u16 op_code, u8 *par, u16 par_len, u16 addr_dst, u16 addr_src);
+void rd_input_call_sence(uint16_t sence_id);
 
 #endif /* RD_MESSDATA_H_ */

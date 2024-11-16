@@ -64,6 +64,7 @@ static void RD_init_handle_output()
 {
 	init_handler_callee_state_output();
 	init_handler_caller_state_output();
+
 }
 
 static void RD_GPIO_Init(void) {
@@ -105,6 +106,8 @@ static void RD_in_out_check_provision(void) {
 
 void RD_mod_in_out_init(void) {
 	RD_GPIO_Init();
+
+	rd_init_queue_rsp();
 
 	RD_Flash_Init();
 
@@ -169,30 +172,26 @@ void rd_check_button_reset()
 
 void RD_mod_in_out_loop(void) {
 	static uint64_t clockTick_ReadBt_ms = 0;
+	static u32 clock_time_read_adc_ms = 0;
 
 	if(clock_time_ms() < clockTick_ReadBt_ms) clockTick_ReadBt_ms = clock_time_ms();
 	if(clock_time_ms() - clockTick_ReadBt_ms >= CYCLE_READ_BT_MS)
 	{
 		clockTick_ReadBt_ms = clock_time_ms();
-		RD_SwitchAC4Ch_ScanB_V2();
+		rd_module_io_handle_input_onoff();
 		rd_check_button_reset();
 	}
-
-//	RD_SwitchAC4Ch_UpdateCtr();
-
-//	RD_SwitchAC4Ch_ScanReset();
-
-//	RD_K9B_ScanPairOnOff();
-//
-//	RD_K9B_TimeOutScanK9BHC();
-
-
-	rd_check_update_in_stt();
+	if(clock_time_ms() - clock_time_read_adc_ms > CYCLE_READ_ADC_MS)
+	{
+		rd_check_adc();
+		clock_time_read_adc_ms = clock_time_ms();
+	}
 
 	RD_handle_caller_state_out();
 
 	RD_handle_callee_state_out();
 
+	rd_handle_tx();
 //	RD_Secure_CheckLoop();
 }
 

@@ -15,30 +15,30 @@ uint16_t RD_ELEMENT_ADDR_2	= 0x0000;
 uint16_t RD_ELEMENT_ADDR_3	= 0x0000;
 uint16_t RD_ELEMENT_ADDR_4	= 0x0000;
 
-void Send_Relay_Stt_Message_RALL_PowerUp(void)
-{
-	uint8_t Mess_Buff[8] = {0};
-
-	u8 relay_stt_buff[5] ={0};
-	for(int i=0; i<LIGHT_CNT; i++)
-	{
-		mesh_cmd_g_onoff_st_t onoff_stt = {0};
-
-		mesh_g_onoff_st_rsp_par_fill(&onoff_stt, i);
-		relay_stt_buff[i] = onoff_stt.present_onoff;
-	}
-	Mess_Buff[0]  = RD_HEADER_SWITCH_TOUCH_STT & 0xFF;
-	Mess_Buff[1]  = RD_HEADER_SWITCH_TOUCH_STT >>8;
-	Mess_Buff[2]  = NUM_OF_ELEMENT;
-	Mess_Buff[3]  = relay_stt_buff[0];
-	Mess_Buff[4]  = relay_stt_buff[1];
-	Mess_Buff[5]  = relay_stt_buff[2];
-	Mess_Buff[6]  = relay_stt_buff[3];
-	Mess_Buff[7]  = relay_stt_buff[4];
-
-	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, Mess_Buff, 8, RD_GATEWAYADDRESS, RD_MAXRESPONESEND); //SENSOR_STATUS
-
-}
+//void Send_Relay_Stt_Message_RALL_PowerUp(void)
+//{
+//	uint8_t Mess_Buff[8] = {0};
+//
+//	u8 relay_stt_buff[5] ={0};
+//	for(int i=0; i<LIGHT_CNT; i++)
+//	{
+//		mesh_cmd_g_onoff_st_t onoff_stt = {0};
+//
+//		mesh_g_onoff_st_rsp_par_fill(&onoff_stt, i);
+//		relay_stt_buff[i] = onoff_stt.present_onoff;
+//	}
+//	Mess_Buff[0]  = RD_HEADER_SWITCH_TOUCH_STT & 0xFF;
+//	Mess_Buff[1]  = RD_HEADER_SWITCH_TOUCH_STT >>8;
+//	Mess_Buff[2]  = NUM_OF_ELEMENT;
+//	Mess_Buff[3]  = relay_stt_buff[0];
+//	Mess_Buff[4]  = relay_stt_buff[1];
+//	Mess_Buff[5]  = relay_stt_buff[2];
+//	Mess_Buff[6]  = relay_stt_buff[3];
+//	Mess_Buff[7]  = relay_stt_buff[4];
+//
+//	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, Mess_Buff, 8, RD_GATEWAYADDRESS, RD_MAXRESPONESEND); //SENSOR_STATUS
+//
+//}
 
 /*----------------------------------- E0 mess handle----------------------------------------*/
 /**
@@ -221,33 +221,30 @@ void RD_Send_Relay_Stt(uint8_t Relay_ID, uint8_t Relay_Stt)
 	Mess_Buff[0]		= Relay_Stt;
 	Element_Add 		= ele_adr_primary + (Relay_ID -1);
 
-	mesh_tx_cmd2normal(G_ONOFF_STATUS, Mess_Buff, 1, Element_Add, RD_GATEWAYADDRESS, 2);
-
-	char UART_TempSend[128];
-	sprintf(UART_TempSend,"Messenger On-Off Gw:0x%x- Relay: %d--%d--%d--%d  \n",RD_GATEWAYADDRESS, relay_Stt[0], relay_Stt[1], relay_Stt[2], relay_Stt[3]);
-	uart_CSend(UART_TempSend);
+	rd_call_tx2(G_ONOFF_STATUS, Mess_Buff, 8, RD_GATEWAYADDRESS, Element_Add);
+//	mesh_tx_cmd2normal(G_ONOFF_STATUS, Mess_Buff, 1, Element_Add, RD_GATEWAYADDRESS, 2);
 }
 
 
 
 
-void Send_Relay_Stt_Message_RALL(uint16_t GW_ADR)
-{
-	uint8_t Mess_Buff[8] = {0};
-
-	Mess_Buff[0]  = RD_HEADER_SWITCH_TOUCH_STT & 0xFF;
-	Mess_Buff[1]  = RD_HEADER_SWITCH_TOUCH_STT >>8;
-	Mess_Buff[2]  = NUM_OF_ELEMENT;
-	for(int i = 0; i<NUM_OF_ELEMENT; i++)
-	{
-		Mess_Buff[i+3] = RD_get_on_off(i,0);
-	}
-	if(GW_ADR == 0x0000)
-	{
-		GW_ADR = 0x0001;
-	}
-	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, Mess_Buff, 8, GW_ADR, RD_MAXRESPONESEND); //SENSOR_STATUS
-}
+//void Send_Relay_Stt_Message_RALL(uint16_t GW_ADR)
+//{
+//	uint8_t Mess_Buff[8] = {0};
+//
+//	Mess_Buff[0]  = RD_HEADER_SWITCH_TOUCH_STT & 0xFF;
+//	Mess_Buff[1]  = RD_HEADER_SWITCH_TOUCH_STT >>8;
+//	Mess_Buff[2]  = NUM_OF_ELEMENT;
+//	for(int i = 0; i<NUM_OF_ELEMENT; i++)
+//	{
+//		Mess_Buff[i+3] = RD_get_on_off(i,0);
+//	}
+//	if(GW_ADR == 0x0000)
+//	{
+//		GW_ADR = 0x0001;
+//	}
+//	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, Mess_Buff, 8, GW_ADR, RD_MAXRESPONESEND); //SENSOR_STATUS
+//}
 
 static void RD_GroupAuto(uint16_t groupID, mesh_cb_fun_par_t *cb_par, uint16_t OpGroup){
 	mesh_cb_fun_par_t *cb_par_g = cb_par;
@@ -328,9 +325,11 @@ static void rd_handle_setting_input(u8 *par,int par_len, u16 gw_addr)
 {
 	u8 idx = par[2];
 	u8 mode = par[3];
+	RD_ev_log("setting_input id: %d mode : %d par_len: %d\n",idx,mode,par_len);
 	u8 err = rd_save_mode_input(idx,mode);
 	if(err)
 	{
+		reset_detect_input(idx-1);
 		rd_call_tx(RD_OPCODE_SCENE_RSP,par,8,gw_addr);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
 	}
@@ -340,6 +339,7 @@ static void rd_handle_setting_link(u8 *par,int par_len, u16 gw_addr)
 {
 	u8 idx_in = par[2];
 	u8 idx_out = par[3];
+	RD_ev_log("setting_link in: %d out : %d\n",idx_in,idx_out);
 	u8 err = rd_save_linked_io(idx_in,idx_out);
 	if(err)
 	{
@@ -352,7 +352,7 @@ void rd_handle_powerup_cf(u8 *par,int par_len, u16 gw_addr)
 {
 	u8 pow_cf = par[2];
 	u8 err = rd_save_powerup_cf(pow_cf);
-
+	RD_ev_log("powerup_cf: %d\n",pow_cf);
 	if(err)
 	{
 		rd_call_tx(RD_OPCODE_SCENE_RSP, par,8,gw_addr);
@@ -364,17 +364,19 @@ void rd_handle_setting_sence_input(u8 *par,int par_len, u16 gw_addr)
 {
 	u8 type_input = par[2];
 	u16 id_sence = (par[4] << 8) | (par[3]);
+
+	RD_ev_log("setting_sence type_input: %d sc : %d\n",type_input,id_sence);
 	u8 err = 0;
 	if(type_input == TYPE_IN)
 	{
 		u8 idx_in = par[5];
 		u8 stt_sence = par[6] ;
-		u8 err = rd_save_sence_in(idx_in,stt_sence,id_sence);
+		err = rd_save_sence_in(idx_in,stt_sence,id_sence);
 	}
-	else if(type_input == TYPE_ADC)
+	else if(type_input == TYPE_ADC_GREATER || type_input == TYPE_ADC_LOWER)
 	{
-		u16 adc_threshold = (par[6] << 8) | (par[5]);
-		u8 err = rd_save_sence_adc(adc_threshold,id_sence);
+		u16 adc_threshold = (par[5] << 8) | (par[6]);
+		err = rd_save_sence_adc(adc_threshold,id_sence,type_input);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
 	}
 	if(err)
@@ -383,7 +385,7 @@ void rd_handle_setting_sence_input(u8 *par,int par_len, u16 gw_addr)
 	}
 }
 
-void rd_handle_rsp_state_all_input(u16 gw_addr)
+void rd_handle_rsp_state_all_input(u8 *par,int par_len,u16 gw_addr)
 {
 	u16 adc_val = get_adc_value();
 	u8 rsp[8] = {0};
@@ -393,8 +395,9 @@ void rd_handle_rsp_state_all_input(u16 gw_addr)
 	rsp[3] = get_status_input(1);
 	rsp[4] = get_status_input(2);
 	rsp[5] = get_status_input(3);
-	rsp[6] = adc_val & 0xff;
-	rsp[7] = adc_val >> 8;
+	rsp[7] = adc_val & 0xff;
+	rsp[6] = adc_val >> 8;
+	RD_ev_log("state_all 1:%d 2:%d 3:%d 4:%d adc:%d\n",rsp[2],rsp[3],rsp[4],rsp[5],adc_val);
 	rd_call_tx(RD_OPCODE_SCENE_RSP, rsp, 8, gw_addr);
 //	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, rsp, 8, gw_addr, RD_MAXRESPONESEND);
 }
@@ -426,7 +429,7 @@ int RD_Messenger_ProcessCommingProcess_SCENE(u8 *par, int par_len, mesh_cb_fun_p
 			rd_handle_setting_sence_input(par, par_len,Gw_Add_Buff);
 			break;
 		case RD_HEADER_STATUS_ALL_INPUT:
-			rd_handle_rsp_state_all_input(Gw_Add_Buff);
+			rd_handle_rsp_state_all_input(par, par_len,Gw_Add_Buff);
 			break;
 		case RD_AUTO_CREATE_GR:
 			RD_Handle_AutoCreateGr(par, Gw_Add_Buff, cb_par );
@@ -442,6 +445,7 @@ int RD_Messenger_ProcessCommingProcess_SCENE(u8 *par, int par_len, mesh_cb_fun_p
 
 	return 0;
 }
+
 
 void RD_Call_Scene(uint16_t Scene_ID, uint8_t Mess_ID)
 {
@@ -465,6 +469,12 @@ void RD_Call_Scene(uint16_t Scene_ID, uint8_t Mess_ID)
 	//mesh_tx_cmd2normal_primary(SCENE_RECALL_NOACK, (uint8_t *) (&Scene_Mess_Buff.Scene_ID[0]), 8, 0xffff, 0); //SENSOR_STATUS
 }
 
+void rd_input_call_sence(uint16_t sence_id)
+{
+	static u16 mess_id = 0;
+	RD_Call_Scene(sence_id, mess_id ++);
+}
+
 void rd_update_input_stt(u8 idx_in, u8 status_in, u16 sence)
 {
 	uint8_t buff[8] = {0};
@@ -476,6 +486,7 @@ void rd_update_input_stt(u8 idx_in, u8 status_in, u16 sence)
 	buff[4] 	= sence & 0xFF;
 	buff[5] 	= sence >>8;
 
+	RD_ev_log("buff send:%d %d %d %d %d %d\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]);
 	rd_call_tx(RD_OPCODE_INPUT_RSP,buff,8,RD_GATEWAYADDRESS);
 //	mesh_tx_cmd2normal_primary(RD_OPCODE_INPUT_RSP, Mess_Buff, 8, RD_GATEWAYADDRESS, RD_MAXRESPONESEND); //SENSOR_STATUS
 	uart_CSend("update stt \n");
@@ -487,8 +498,8 @@ void rd_update_adc_stt(u16 adc, u16 sence)
 
 	buff[0] 	= RD_HEADER_ADC_STATUS & 0xFF ;
 	buff[1]		= RD_HEADER_ADC_STATUS >>8;
-	buff[2]		= adc & 0xFF;
-	buff[3]		= adc >> 8;
+	buff[3]		= adc & 0xFF;
+	buff[2]		= adc >> 8;
 	buff[4] 	= sence & 0xFF;
 	buff[5] 	= sence >>8;
 

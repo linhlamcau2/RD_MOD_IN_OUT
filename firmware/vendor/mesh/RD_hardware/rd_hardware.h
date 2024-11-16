@@ -10,19 +10,22 @@
 #define HUE_PROVIDER				0x0201
 #define PROVIDER_ID					RD_PROVIDER
 
-#define	Device_BROADCRARD_0		0x13	//Switch
+#define	Device_BROADCRARD_0		0x0D	//Switch
 #define	Device_BROADCRARD_3		0x01
 #define	Device_BROADCRARD_4		((PROVIDER_ID >>8) & 0xFF) // khong dao
 #define	Device_BROADCRARD_5		(PROVIDER_ID       & 0xFF) // khong dao
 #define	Device_BROADCRARD_6		VERSION_FIRM_H
 #define	Device_BROADCRARD_7		VERSION_FIRM_L
-#define	Device_BROADCRARD_2		0x07
+#define	Device_BROADCRARD_2		0x01
 #define	Device_BROADCRARD_1     0x01
 
 #define CONFIG_POWUP_EN			1
-#define CYCLE_ACTIVE_BUTTON			7 // num of read CYCLE_ACTIVE_BUTTON times active iss press
+#define CYCLE_ACTIVE_BUTTON			10 // num of read CYCLE_ACTIVE_BUTTON times active iss press
+#define CYCLE_DETECT_LEVEL			20
 #define CYCLE_READ_BT_MS			5 // time of 1 cycle check read bt
 #define CYCLE_HOLD_BUTTON			500
+#define CYCLE_READ_ADC_MS			50
+#define COUNT_CHECK_ADC				15
 
 #define FAST_PROVISION_EN_RD			1
 #define K9B_REMOTE_SUPPORT_ON		1

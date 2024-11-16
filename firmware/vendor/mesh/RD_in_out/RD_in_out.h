@@ -36,10 +36,9 @@
 /*--------------------------- Gpio init ----------------------------------*/
 #define NUM_OF_ELEMENT		 		2
 #define NUM_OF_INPUT				4
+#define NUM_LED						6
 
 #define DETECT_ZERO_PIN				GPIO_PA2
-#define	BT1_PIN						GPIO_PA1
-#define	BT2_PIN						GPIO_PC3
 
 #define INPUT_1						GPIO_PA1
 #define INPUT_2						GPIO_PB7
@@ -60,6 +59,7 @@
 #define LED_5						GPIO_PD4
 #define LED_6						GPIO_PD3
 
+
 #define BUZZER						GPIO_PA7
 #define RESET_TOUCH_PIN				GPIO_PA1
 
@@ -69,6 +69,7 @@
 
 #define INPUT_READ(i)				gpio_read(Input_Array[i])
 #define RD_IN_READ(i)				INPUT_READ(i)
+#define BIT_INPUT(i)				(Input_Array[i] && 0xff)
 extern uint32_t Input_Array[];
 
 #define OUTPUT_WRITE(i,t)            gpio_write(Output_Array[i], t)
@@ -205,7 +206,8 @@ typedef struct
 
 enum
 {
-	SYNC_PRESS_STATE = 0,    // dong bo trang thai giu		// dao trang thai giu
+	DEFAULT_STATE = 0,
+	SYNC_PRESS_STATE = DEFAULT_STATE,    // dong bo trang thai giu		// dao trang thai giu
 	PRESS_RELEASE_STATE,		//
 	INPUT_STATE_MAX = PRESS_RELEASE_STATE,
 };
@@ -221,7 +223,8 @@ enum
 enum
 {
 	TYPE_IN = 1,
-	TYPE_ADC,
+	TYPE_ADC_GREATER,
+	TYPE_ADC_LOWER
 };
 /*--------------------------- Variable ----------------------------------*/
 
@@ -254,7 +257,7 @@ void RD_mod_in_out_loop(void);
 void RD_mod_in_out_factory_reset();
 void RD_mod_io_gw_reset(void);
 void RD_SetAndRsp_Switch(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
-void RD_SwitchAC4Ch_ScanB_V2(void);
+void rd_module_io_handle_input_onoff(void);
 void RD_SwitchAC4Ch_UpdateCtr(void);
 void RD_SwitchAC4Ch_ScanReset(void);
 void RD_Set_UpdateStt(uint8_t Relay_ID);
@@ -266,10 +269,10 @@ void RD_handle_callee_state_out();
 void RD_handle_caller_state_out();
 
 
-void RD_K9B_SaveOnOff(uint32_t macDevice, uint8_t key);
-void RD_K9B_CheckScanK9BHc(uint32_t K9BMac_Buff, uint8_t Num_Of_Button, s8 rssi);
-uint8_t RD_K9B_ScanPress2HC(uint32_t macDevice, uint8_t key, uint32_t par_signature);
-int RD_CheckButtonPosK9BHC(uint8_t ButtonID_Aray[MAX_MUM_K9BPRESSTYPE], uint8_t ButtonID_Check);
+//void RD_K9B_SaveOnOff(uint32_t macDevice, uint8_t key);
+//void RD_K9B_CheckScanK9BHc(uint32_t K9BMac_Buff, uint8_t Num_Of_Button, s8 rssi);
+//uint8_t RD_K9B_ScanPress2HC(uint32_t macDevice, uint8_t key, uint32_t par_signature);
+//int RD_CheckButtonPosK9BHC(uint8_t ButtonID_Aray[MAX_MUM_K9BPRESSTYPE], uint8_t ButtonID_Check);
 
 void RD_K9B_PairHCSet(uint8_t pairStt, uint16_t K9BAdd);
 void RD_K9B_TimeOutScanK9BHC(void);
@@ -282,4 +285,8 @@ void rd_check_update_in_stt();
 u16 get_adc_value();
 u8 get_status_input(u8 idx);
 
+void reset_detect_input(u8 id);
+void reset_all_detect_input(u8 id);
+
+void rd_check_adc();
 #endif

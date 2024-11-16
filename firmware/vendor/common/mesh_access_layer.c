@@ -382,7 +382,7 @@ int mesh_rc_data_layer_access2(u8 *ac, int len_ac, mesh_cmd_nw_t *p_nw)			//RD_E
     }
     mesh_op_resource_t op_res;
     if(is_support_op(&op_res, op, adr_dst, 0)){
-    	RD_ev_log("step 0 handle\n");
+//    	RD_ev_log("step 0 handle\n");
         is_support_flag = 1;
         if(is_rx_need_extend_invalid_model(op_res.id, get_op_st)){ // id has been SIG here.
             return -1;
@@ -393,12 +393,12 @@ int mesh_rc_data_layer_access2(u8 *ac, int len_ac, mesh_cmd_nw_t *p_nw)			//RD_E
             u8 retransaction = 0;
             
             foreach(i,op_res.model_cnt){
-            	RD_ev_log("step 0.1 handle\n");
+//            	RD_ev_log("step 0.1 handle\n");
                 model_common_t *p_model = (model_common_t *)op_res.model[i];
 				
 				#if !PRIVATE_SELF_PROVISION_EN
                 if(is_use_device_key(op_res.id, op_res.sig)){	// cfg model
-                	RD_ev_log("step 1 handle\n");
+//                	RD_ev_log("step 1 handle\n");
                 	#if (DEBUG_CFG_CMD_GROUP_AK_EN || DEBUG_CFG_CMD_USE_AK_WHEN_GROUP_EN2)
                     if(DEBUG_CFG_CMD_GROUP_USE_AK(adr_dst)){
                     }else
@@ -452,7 +452,7 @@ int mesh_rc_data_layer_access2(u8 *ac, int len_ac, mesh_cmd_nw_t *p_nw)			//RD_E
 					is_valid_addr = p_access_layer_dst_addr_cb(p_nw);
 				}
 				#endif
-				RD_ev_log("step 2 handle\n");
+//				RD_ev_log("step 2 handle\n");
                 if(is_unicast_adr(adr_dst)
                 || is_fixed_group(adr_dst)  // have been checked feature before in mesh_match_group_mac_()
                 || is_subscription_adr(p_model, adr_dst)
@@ -460,7 +460,7 @@ int mesh_rc_data_layer_access2(u8 *ac, int len_ac, mesh_cmd_nw_t *p_nw)			//RD_E
 				|| is_valid_addr
 				#endif
 				){
-                	RD_ev_log("step 2.1 handle\n");
+//                	RD_ev_log("step 2.1 handle\n");
                     if(op_res.cb){
                         mesh_cb_fun_par_t cb_par;
                         cb_par.model = op_res.model[i];
