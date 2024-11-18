@@ -69,10 +69,6 @@ void RD_Flash_Save_DataDefault(void) {
 
 	Sw_Flash_Data_Val.Gw_Add = GW_ADD_DEFAULT;
 	Sw_Flash_Data_Val.PowerUpStt = RD_PowUpStore;
-//	for(u8 i= 0 ; i<NUM_OF_INPUT; i++)
-//	{
-//		Sw_Flash_Data_Val.input_setting[i].mode = 0xff;
-//	}
 	for( u8 i=0; i<NUM_OF_ELEMENT; i++)
 	{
 		Sw_Flash_Data_Val.output_linked[i] = 0xff;
@@ -120,7 +116,7 @@ static void RD_Flash_Data_Init(void) {
 				{
 					light_onoff_idx(i,PowUpStt, 0);
 					set_on_power_up_onoff(i, 0, PowUpStt); // save for POWer_up
-//					RD_mod_io_onoff(PowUpStt,i,0);
+					rd_onoff_relay(PowUpStt,i,0);
 				}
 			}
 			else
@@ -129,7 +125,7 @@ static void RD_Flash_Data_Init(void) {
 				{
 					u8 state = RD_get_on_off(i,0);
 					RD_ev_log("out %d: %d\n",i,state);
-//					RD_mod_io_onoff(state,i,0);
+					rd_onoff_relay(state,i,0);
 				}
 			}
 		#endif
@@ -149,9 +145,6 @@ void RD_init_flash_out_handle()
 void RD_Flash_Init(void)
 {
 	RD_Flash_Data_Init();
-
-	RD_init_flash_out_handle();
-//	RD_Flash_PowerUp_Init();
 }
 
 void RD_Flash_Save_Secure(uint8_t Secure_Stt)
@@ -165,7 +158,7 @@ void RD_Flash_SaveGwAdd(uint16_t Gw_Add)
 {
 	Sw_Flash_Data_Val.Gw_Add = Gw_Add;
 	rd_flash_save();
-	RD_ev_log("save gw :%d",Gw_Add);
+	RD_ev_log("save gw :%d\n",Gw_Add);
 }
 
 

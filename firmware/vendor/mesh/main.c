@@ -244,7 +244,10 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		wd_clear(); //clear watch dog
 #endif
 		main_loop ();
+
 		RD_mod_in_out_loop();
+
+		rd_handle_queue_loop();
 	}
 }
 // RD_EDIT: find handle button --> search "RD_EDIT: handle button"

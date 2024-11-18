@@ -34,7 +34,6 @@ u8 get_status_input(u8 idx)
 
 u8 rd_handle_input_press(u8 idx)
 {
-//	rd_set_update_in_stt();
 	u8 status_in = MODE_PULSING;
 	u16 sence_id = get_sence_input(idx);
 	rd_update_input_stt(idx,status_in,sence_id);
@@ -45,7 +44,7 @@ u8 rd_handle_input_press(u8 idx)
 	u8 idx_ele = get_ele_linked(idx);
 	if(idx_ele != 0xff )
 	{
-		rd_toggle_output(idx_ele,1);
+		rd_toggle_relay(idx_ele,1);
 	}
 	return 0;
 }
@@ -62,11 +61,10 @@ u8 rd_handle_input_asyn(u8 idx)
 		rd_input_call_sence(sence_id);
 	}
 
-//	rd_set_update_in_stt();
 	u8 idx_ele = get_ele_linked(idx);
 	if(idx_ele != 0xff )
 	{
-		RD_mod_io_onoff(rd_input_state[idx],idx_ele,1);
+		rd_onoff_relay(rd_input_state[idx],idx_ele,1);
 	}
 	return 0;
 }
@@ -242,8 +240,9 @@ void rd_read_adc()
 void rd_printf_adc()
 {
 	static u32 log_adc_ms = 0;
-	if(clock_time_ms() - log_adc_ms > 500)
+	if(clock_time_ms() - log_adc_ms > 3000)
 	{
+		app_battery_check_and_re_init_user_adc();
 		u16 adc_value = adc_sample_and_get_result();
 		RD_ev_log("rd_printf_adc: %d\n",adc_value);
 		log_adc_ms = clock_time_ms();
@@ -254,9 +253,10 @@ void rd_check_adc()
 {
 	static u8 handle_check = 0;
 	static u8 count_check = 0;
-	rd_printf_adc();
+//	rd_printf_adc();
 	if(get_adc_sence())
 	{
+		app_battery_check_and_re_init_user_adc();
 		u16 adc_val = adc_sample_and_get_result();
 		if(rd_check_state_adc(adc_val))
 		{

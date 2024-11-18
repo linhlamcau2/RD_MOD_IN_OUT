@@ -19,8 +19,13 @@ typedef struct {
     int elementSize;
 } rd_queue_t;
 
-void rd_initQueue(rd_queue_t *q, int maxSize, int elementSize, void *dataArray);
+typedef void (*rd_func_handle_t)(void);
+
+//void rd_initQueue(rd_queue_t *q, int maxSize, int elementSize, void *dataArray);
+int rd_initQueue(rd_queue_t *q, int maxSize, int elementSize, void *dataArray,rd_func_handle_t func_handle);
 int rd_enqueue(rd_queue_t *q, void *element);
 int rd_dequeue(rd_queue_t *q, void *element);
+int isQueueEmpty(rd_queue_t *q);
 
+void rd_handle_queue_loop();
 #endif

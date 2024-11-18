@@ -288,7 +288,7 @@ int g_onoff_set(mesh_cmd_g_onoff_set_t *p_set, int par_len, int force_last,
 		err = g_level_set((u8 *) &level_set_tmp, len_tmp, G_LEVEL_SET_NOACK,
 				idx, retransaction, st_trans_type, 0, pub_list);
 		if (!err) {
-			RD_mod_io_onoff(p_set->onoff,idx,0);
+			rd_onoff_relay(p_set->onoff,idx,0);
 			set_on_power_up_onoff(idx, st_trans_type, p_set->onoff);
 #if 0 // PTS_TEST_MMDL_SR_LLC_BV_08_C
 			light_res_sw_save[idx].lc_onoff_target = p_set->onoff; // need to place another generic onoff model at the third element which only include LC models.
@@ -355,13 +355,7 @@ int mesh_cmd_sig_g_onoff_set(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par)
 
 	if(cb_par->op_rsp == STATUS_NONE || cb_par->adr_src != RD_GATEWAYADDRESS) //
 	{
-		if(cb_par->adr_dst == ele_adr_primary) 			RD_Set_UpdateStt(1);
-		else if(cb_par->adr_dst == ele_adr_primary+1) 	RD_Set_UpdateStt(2);
-		else if(cb_par->adr_dst == ele_adr_primary+2) 	RD_Set_UpdateStt(3);
-		else if(cb_par->adr_dst == ele_adr_primary+3) 	RD_Set_UpdateStt(4);
-		else if(cb_par->adr_dst == ele_adr_primary+4) 	RD_Set_UpdateStt(5);
-		else 										  	RD_Set_UpdateStt(0xff);
-		//RD_Update_Relay_Stt(1);
+		u8 idx = ele_adr_primary - cb_par->adr_dst;
 	}
 
 	st_pub_list_t pub_list = { { 0 } };

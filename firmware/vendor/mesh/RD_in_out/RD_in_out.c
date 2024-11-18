@@ -20,52 +20,13 @@ extern int mesh_tx_cmd_g_onoff_st(u8 idx, u16 ele_adr, u16 dst_adr, u8 *uuid,
 #include "proj_lib/sig_mesh/app_mesh.h"
 
 
-
-
-uint8_t Button1_Hold_Flag = 0;
-uint8_t Button2_Hold_Flag = 0;
-
-
-
-uint8_t Register_Config[128] = { 0 };
-
-Button_Stt_Type button1_Stt = Button_None;
-Button_Stt_Type button2_Stt = Button_None;
-
-
-
-
-Relay_Stt_Type relay_Stt[5] = { 0 };
-
-CountDown_Str CountDown_Val[5] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0,
-		0, 0 }, { 0, 0, 0 } };
-
-Sw_SingleBlink_Str Sw_SingleBlink_Val[NUM_OF_ELEMENT];
-
-uint8_t pressResetCount = 0;
-uint8_t countPower = 0;
-uint8_t powerSaved = 0;
-uint8_t Traing_Loop = 0;
-
-uint8_t Fist_Socket_Relay = 0;
 uint8_t Kick_all_Flag;
-Sw_Working_Stt_Str Sw_Working_Stt_Val;
-Sw_press_K9BHC_Str Sw_Press_K9BHC_Val;
-Sw_Update_Stt_Str Sw_Update_Stt_Val;
-u8 element = 2;
+Sw_Working_Stt_Str Sw_Working_Stt_Val = {0};
 
 uint32_t Input_Array[] = ARR_INPUT_PIN;
 uint32_t Output_Array[NUM_OF_ELEMENT] = ARR_OUTPUT_PIN;
-uint32_t led_arr[] = ARR_LED;
 
-extern void init_handler_callee_state_output();
-extern void init_handler_caller_state_output();
-static void RD_init_handle_output()
-{
-	init_handler_callee_state_output();
-	init_handler_caller_state_output();
-
-}
+extern u32 arr_led[];
 
 static void RD_GPIO_Init(void) {
 	/*--------------------------- init output led ----------------------------------*/
@@ -79,28 +40,23 @@ static void RD_GPIO_Init(void) {
 		gpio_set_input_en(Input_Array[i], 1);
 	}
 
-	for(u8 i =0; i<sizeof(led_arr)/ sizeof(led_arr[0]); i++)
+	for(u8 i =0; i<NUM_LED; i++)
 	{
-		gpio_set_func(led_arr[i], AS_GPIO);
-		gpio_set_output_en(led_arr[i], 1);
-		gpio_write(led_arr[i], i%2);
+		gpio_set_func(arr_led[i], AS_GPIO);
+		gpio_set_output_en(arr_led[i], 1);
+		gpio_write(arr_led[i], 1);
 	}
 
-//	gpio_set_func(BUZZER, AS_GPIO);
-//	gpio_set_output_en(BUZZER, 1);
-//	gpio_write(BUZZER, 0);
 
 	gpio_setup_up_down_resistor(BUTTON_RESET, PM_PIN_PULLDOWN_100K);
 	gpio_set_func(BUTTON_RESET, AS_GPIO);
 	gpio_set_input_en(BUTTON_RESET, 1);
-
-	RD_init_handle_output();
 }
 
 static void RD_in_out_check_provision(void) {
-	if (get_provision_state() == STATE_DEV_UNPROV) {
-//		RD_mod_io_blink(4,4,0);
-//		RD_mod_io_blink(4,4,1);
+	if (get_provision_state() == STATE_DEV_PROVED){
+//	if (get_provision_state() == STATE_DEV_UNPROV) {
+		rd_blink_led(0,4,5);
 	}
 }
 
@@ -108,6 +64,8 @@ void RD_mod_in_out_init(void) {
 	RD_GPIO_Init();
 
 	rd_init_queue_rsp();
+	rd_init_queue_led();
+	rd_init_queue_relay();
 
 	RD_Flash_Init();
 
@@ -122,17 +80,14 @@ void RD_mod_in_out_factory_reset() {
 	uart_CSend("Factory reset \n");
 	for (int j = 0; j < 5; j++) {
 		for (int i = 0; i < 6; i++) {
-			gpio_write(led_arr[i],0);
+			gpio_write(arr_led[i],0);
 		}
 		sleep_ms(200);
 		for (int i = 0; i < 6; i++) {
-			gpio_write(led_arr[i], 1);
+			gpio_write(arr_led[i], 1);
 		}
 		sleep_ms(200);
 		wd_clear(); //clear watch dog
-	}
-	if ((get_provision_state() == STATE_DEV_UNPROV)) {
-		reset_Mess_Flag = 0;
 	}
 	RD_Flash_Save_DataDefault();
 	sleep_ms(200);
@@ -186,12 +141,6 @@ void RD_mod_in_out_loop(void) {
 		rd_check_adc();
 		clock_time_read_adc_ms = clock_time_ms();
 	}
-
-	RD_handle_caller_state_out();
-
-	RD_handle_callee_state_out();
-
-	rd_handle_tx();
 //	RD_Secure_CheckLoop();
 }
 
@@ -211,49 +160,18 @@ void RD_SetAndRsp_Switch(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_on
 
 void RD_mod_io_gw_reset(void) //RD_Todo:
 {
-	for(int i=0; i<5; i ++)
+	for (int j = 0; j < 5; j++)
 	{
-		for(int i=0; i< NUM_OF_ELEMENT; i++)
-		{
-			OUTPUT_WRITE(i,0);
+		for (int i = 0; i < 6; i++) {
+			gpio_write(arr_led[i],0);
 		}
 		sleep_ms(200);
-		for(int i=0; i< NUM_OF_ELEMENT; i++)
-		{
-			OUTPUT_WRITE(i,0);
+		for (int i = 0; i < 6; i++) {
+			gpio_write(arr_led[i], 1);
 		}
 		sleep_ms(200);
 		wd_clear(); //clear watch dog
 	}
-	if((get_provision_state() == STATE_DEV_UNPROV))
-	{
-		reset_Mess_Flag = 0;
-	}
 	RD_Flash_Save_DataDefault();
 	sleep_ms(200);
 }
-
-
-void RD_Set_UpdateStt(uint8_t Relay_ID)
-{
-	Sw_Update_Stt_Val.Time_Last_Update_ms = clock_time_ms() + (ele_adr_primary%50)*100; // set time rsp in many time task
-	if(Relay_ID <= 5 )
-	{
-		Sw_Update_Stt_Val.Update_Stt_Flag[Relay_ID-1] = RD_EN;
-	}
-	if(Relay_ID == 0xff)
-	{
-		Sw_Update_Stt_Val.Update_Stt_Flag[0] = RD_EN;
-		Sw_Update_Stt_Val.Update_Stt_Flag[1] = RD_EN;
-		Sw_Update_Stt_Val.Update_Stt_Flag[2] = RD_EN;
-		Sw_Update_Stt_Val.Update_Stt_Flag[3] = RD_EN;
-		Sw_Update_Stt_Val.Update_Stt_Flag[4] = RD_EN;
-	}
-	char UART_Buff[64];
-	sprintf(UART_Buff,"set update stt Relay ID: %d", Relay_ID);
-	uart_CSend(UART_Buff);
-}
-
-
-
-

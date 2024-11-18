@@ -763,7 +763,7 @@ void light_res_sw_g_level_last_set(int idx, int st_trans_type)
 		set_on_power_up_last(p_save, p_trans->target);
 	}
 	RD_ev_log("RD last_set:%d, id: %d\n",p_save->onoff,idx);
-	RD_mod_io_onoff(p_save->onoff,idx,0);
+	rd_onoff_relay(p_save->onoff,idx,0);
 	light_par_save(0);
 }
 

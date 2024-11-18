@@ -3,42 +3,9 @@
 #include "../RD_secure/rd_secure.h"
 #include "../RD_log/RD_log.h"
 
-uint8_t Train_Factory =0;
-extern STT_Relay_Mess STT_Relay_Mess_Config;
 extern void mesh_g_onoff_st_rsp_par_fill(mesh_cmd_g_onoff_st_t *rsp, u8 idx);
-uint8_t reset_Mess_Flag =0;
-unsigned char vr_RD_ProvDone;
-
 uint16_t RD_GATEWAYADDRESS  = GW_ADD_DEFAULT;
-uint16_t RD_ELEMENT_ADDR_1	= 0x0000;
-uint16_t RD_ELEMENT_ADDR_2	= 0x0000;
-uint16_t RD_ELEMENT_ADDR_3	= 0x0000;
-uint16_t RD_ELEMENT_ADDR_4	= 0x0000;
 
-//void Send_Relay_Stt_Message_RALL_PowerUp(void)
-//{
-//	uint8_t Mess_Buff[8] = {0};
-//
-//	u8 relay_stt_buff[5] ={0};
-//	for(int i=0; i<LIGHT_CNT; i++)
-//	{
-//		mesh_cmd_g_onoff_st_t onoff_stt = {0};
-//
-//		mesh_g_onoff_st_rsp_par_fill(&onoff_stt, i);
-//		relay_stt_buff[i] = onoff_stt.present_onoff;
-//	}
-//	Mess_Buff[0]  = RD_HEADER_SWITCH_TOUCH_STT & 0xFF;
-//	Mess_Buff[1]  = RD_HEADER_SWITCH_TOUCH_STT >>8;
-//	Mess_Buff[2]  = NUM_OF_ELEMENT;
-//	Mess_Buff[3]  = relay_stt_buff[0];
-//	Mess_Buff[4]  = relay_stt_buff[1];
-//	Mess_Buff[5]  = relay_stt_buff[2];
-//	Mess_Buff[6]  = relay_stt_buff[3];
-//	Mess_Buff[7]  = relay_stt_buff[4];
-//
-//	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, Mess_Buff, 8, RD_GATEWAYADDRESS, RD_MAXRESPONESEND); //SENSOR_STATUS
-//
-//}
 
 /*----------------------------------- E0 mess handle----------------------------------------*/
 /**
@@ -163,8 +130,6 @@ static void RD_Hanlde_FactoryTestEnd(uint16_t Gw_Add_Buff)
 	uint16_t GWAdresss = 0x0000;
 	GWAdresss = 0x0001;				// rRess
 	RD_Flash_SaveGwAdd(GWAdresss);
-	reset_Mess_Flag = 1;
-//	RD_SwitchAc4Ch_BlinkSet(5, 100);
 }
 
 static void RD_Handle_KickAll(uint8_t par[8], uint16_t Gw_Add_Buff)
@@ -225,27 +190,6 @@ void RD_Send_Relay_Stt(uint8_t Relay_ID, uint8_t Relay_Stt)
 //	mesh_tx_cmd2normal(G_ONOFF_STATUS, Mess_Buff, 1, Element_Add, RD_GATEWAYADDRESS, 2);
 }
 
-
-
-
-//void Send_Relay_Stt_Message_RALL(uint16_t GW_ADR)
-//{
-//	uint8_t Mess_Buff[8] = {0};
-//
-//	Mess_Buff[0]  = RD_HEADER_SWITCH_TOUCH_STT & 0xFF;
-//	Mess_Buff[1]  = RD_HEADER_SWITCH_TOUCH_STT >>8;
-//	Mess_Buff[2]  = NUM_OF_ELEMENT;
-//	for(int i = 0; i<NUM_OF_ELEMENT; i++)
-//	{
-//		Mess_Buff[i+3] = RD_get_on_off(i,0);
-//	}
-//	if(GW_ADR == 0x0000)
-//	{
-//		GW_ADR = 0x0001;
-//	}
-//	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, Mess_Buff, 8, GW_ADR, RD_MAXRESPONESEND); //SENSOR_STATUS
-//}
-
 static void RD_GroupAuto(uint16_t groupID, mesh_cb_fun_par_t *cb_par, uint16_t OpGroup){
 	mesh_cb_fun_par_t *cb_par_g = cb_par;
 	cb_par_g->op = OpGroup;
@@ -301,7 +245,6 @@ static void RD_Handle_AutoCreateGr(u8 *par, uint16_t Gw_Add_Buff, mesh_cb_fun_pa
 	RD_GroupAuto(id_group_type, cb_par, CFG_MODEL_SUB_ADD);
 
 	uart_CSend("Auto create Group default \n");
-//	RD_SwitchAc4Ch_BlinkSet(5, 100);
 }
 
 static void RD_Handle_AutoDeleteGr(u8 *par, uint16_t Gw_Add_Buff, mesh_cb_fun_par_t *cb_par)
@@ -318,7 +261,6 @@ static void RD_Handle_AutoDeleteGr(u8 *par, uint16_t Gw_Add_Buff, mesh_cb_fun_pa
 	RD_GroupAuto(id_group_type, cb_par, CFG_MODEL_SUB_DEL);
 
 	uart_CSend("Auto delete Group default\n");
-//	RD_SwitchAc4Ch_BlinkSet(5, 100);
 }
 
 static void rd_handle_setting_input(u8 *par,int par_len, u16 gw_addr)
@@ -486,7 +428,7 @@ void rd_update_input_stt(u8 idx_in, u8 status_in, u16 sence)
 	buff[4] 	= sence & 0xFF;
 	buff[5] 	= sence >>8;
 
-	RD_ev_log("buff send:%d %d %d %d %d %d\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]);
+//	RD_ev_log("buff send:%d %d %d %d %d %d\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]);
 	rd_call_tx(RD_OPCODE_INPUT_RSP,buff,8,RD_GATEWAYADDRESS);
 //	mesh_tx_cmd2normal_primary(RD_OPCODE_INPUT_RSP, Mess_Buff, 8, RD_GATEWAYADDRESS, RD_MAXRESPONESEND); //SENSOR_STATUS
 	uart_CSend("update stt \n");

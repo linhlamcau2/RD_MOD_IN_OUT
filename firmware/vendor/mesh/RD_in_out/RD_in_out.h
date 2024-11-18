@@ -37,6 +37,7 @@
 #define NUM_OF_ELEMENT		 		2
 #define NUM_OF_INPUT				4
 #define NUM_LED						6
+#define NUM_OF_RELAY				NUM_OF_ELEMENT
 
 #define DETECT_ZERO_PIN				GPIO_PA2
 
@@ -49,6 +50,7 @@
 
 #define OUTPUT_1					GPIO_PC2
 #define OUTPUT_2					GPIO_PC3
+
 
 #define BUTTON_RESET 				GPIO_PD2
 
@@ -65,6 +67,9 @@
 
 #define ARR_INPUT_PIN				{INPUT_1,INPUT_2,INPUT_3,INPUT_4}
 #define ARR_OUTPUT_PIN 				{OUTPUT_1,OUTPUT_2}
+
+#define ARR_RELAY					ARR_OUTPUT_PIN
+
 #define ARR_LED						{LED_1,LED_2,LED_3,LED_4,LED_5,LED_6}
 
 #define INPUT_READ(i)				gpio_read(Input_Array[i])
@@ -72,7 +77,8 @@
 #define BIT_INPUT(i)				(Input_Array[i] && 0xff)
 extern uint32_t Input_Array[];
 
-#define OUTPUT_WRITE(i,t)            gpio_write(Output_Array[i], t)
+#define OUTPUT_WRITE(i,t)           gpio_write(Output_Array[i], t)
+#define LED_WRITE(i,t)				gpio_write(arr_led[i],t)
 /*--------------------------- type product ----------------------------------*/
 #define TYPE_MAINDEVICE 	 		0x02
 #define	TYPE_SWITCH			 		0x02
@@ -228,56 +234,19 @@ enum
 };
 /*--------------------------- Variable ----------------------------------*/
 
-extern Button_Stt_Type button1_Stt;
-extern Button_Stt_Type button2_Stt;
-
-
-
-
-extern uint8_t Button1_Hold_Flag;
-extern uint8_t Button2_Hold_Flag;
-
-
 extern uint8_t Kick_all_Flag;
 extern Sw_Working_Stt_Str Sw_Working_Stt_Val;
-extern Relay_Stt_Type relay_Stt[5];
-extern CountDown_Str CountDown_Val[5];
-
-extern uint8_t countPower;
-extern uint8_t powerSaved;
-extern uint8_t Traing_Loop;
-
-#define SETMAX(Val_SET, Num_Max) 	Val_SET = (Val_SET > Num_Max) ? Num_Max:Val_SET
-#define SETMIN(Val_SET, Num_Min) 	Val_SET = (Val_SET < Num_Min) ? Num_Min : Val_SET
 
 /*--------------------------- Function ----------------------------------*/
-//void init_in_out_pin();
+
 void RD_mod_in_out_init(void);
 void RD_mod_in_out_loop(void);
+
+
 void RD_mod_in_out_factory_reset();
 void RD_mod_io_gw_reset(void);
 void RD_SetAndRsp_Switch(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
 void rd_module_io_handle_input_onoff(void);
-void RD_SwitchAC4Ch_UpdateCtr(void);
-void RD_SwitchAC4Ch_ScanReset(void);
-void RD_Set_UpdateStt(uint8_t Relay_ID);
-
-void rd_toggle_output(uint8_t id_ele, int rsp);
-int RD_mod_io_onoff(int light,uint8_t id_ele, int rsp);
-int RD_mod_io_blink(uint8_t cyclce, uint8_t time_ms,uint8_t id_ele);
-void RD_handle_callee_state_out();
-void RD_handle_caller_state_out();
-
-
-//void RD_K9B_SaveOnOff(uint32_t macDevice, uint8_t key);
-//void RD_K9B_CheckScanK9BHc(uint32_t K9BMac_Buff, uint8_t Num_Of_Button, s8 rssi);
-//uint8_t RD_K9B_ScanPress2HC(uint32_t macDevice, uint8_t key, uint32_t par_signature);
-//int RD_CheckButtonPosK9BHC(uint8_t ButtonID_Aray[MAX_MUM_K9BPRESSTYPE], uint8_t ButtonID_Check);
-
-void RD_K9B_PairHCSet(uint8_t pairStt, uint16_t K9BAdd);
-void RD_K9B_TimeOutScanK9BHC(void);
-void RD_K9B_ScanPairOnOff(void);
-
 
 void rd_set_update_in_stt();
 void rd_check_update_in_stt();
@@ -289,4 +258,15 @@ void reset_detect_input(u8 id);
 void reset_all_detect_input(u8 id);
 
 void rd_check_adc();
+
+void rd_init_queue_led();
+void rd_blink_led(u8 idx_led, u8 num,u8 time_delay_100ms);
+void rd_on_off_led(u8 idx_led, u8 status);
+
+
+void rd_init_queue_relay();
+int rd_onoff_relay(u8 stt,u8 id_relay, int rsp);
+void rd_toggle_relay(uint8_t id_ele, int rsp);
+
+void rd_my_func();
 #endif

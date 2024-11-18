@@ -17,10 +17,7 @@ typedef struct
 rd_queue_t rd_queue_rsp;
 rd_rsp_mesh_t rd_rsp_mesh[NUM_MAX_QUEUE_RSP];
 
-void rd_init_queue_rsp()
-{
-	rd_initQueue(&rd_queue_rsp,NUM_MAX_QUEUE_RSP,SIZE_QUEUE_RSP,(void *)rd_rsp_mesh);
-}
+
 
 void rd_call_tx(u16 op_code, u8 *par, u16 par_len, u16 addr_dst)
 {
@@ -33,7 +30,7 @@ void rd_call_tx(u16 op_code, u8 *par, u16 par_len, u16 addr_dst)
 		mess_tx.par_len = par_len;
 		mess_tx.addr_dst = addr_dst;
 		rd_enqueue(&rd_queue_rsp,(void *)&mess_tx);
-		RD_ev_log("rd_call_tx 0\n");
+//		RD_ev_log("rd_call_tx 0\n");
 	}
 //	memcpy((void *)mess_tx.par,(void *)par,par_len);
 }
@@ -76,6 +73,11 @@ void rd_handle_tx()
 		rd_rsp();
 		last_time_rsp = clock_time_ms();
 	}
+}
+
+void rd_init_queue_rsp()
+{
+	rd_initQueue(&rd_queue_rsp,NUM_MAX_QUEUE_RSP,SIZE_QUEUE_RSP,(void *)rd_rsp_mesh,rd_handle_tx);
 }
 
 
