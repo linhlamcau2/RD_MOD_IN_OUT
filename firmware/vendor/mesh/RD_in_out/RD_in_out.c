@@ -19,14 +19,14 @@ extern int mesh_tx_cmd_g_onoff_st(u8 idx, u16 ele_adr, u16 dst_adr, u8 *uuid,
 #include "proj_lib/ble/ll/ll.h"
 #include "proj_lib/sig_mesh/app_mesh.h"
 
+#include "../rd_queue.h"
 
-uint8_t Kick_all_Flag;
+uint8_t Kick_all_Flag = 0;;
 Sw_Working_Stt_Str Sw_Working_Stt_Val = {0};
 
 uint32_t Input_Array[] = ARR_INPUT_PIN;
 uint32_t Output_Array[NUM_OF_ELEMENT] = ARR_OUTPUT_PIN;
 
-extern u32 arr_led[];
 
 static void RD_GPIO_Init(void) {
 	/*--------------------------- init output led ----------------------------------*/
@@ -54,9 +54,14 @@ static void RD_GPIO_Init(void) {
 }
 
 static void RD_in_out_check_provision(void) {
-	if (get_provision_state() == STATE_DEV_PROVED){
-//	if (get_provision_state() == STATE_DEV_UNPROV) {
-		rd_blink_led(0,4,5);
+//	if (get_provision_state() == STATE_DEV_PROVED){
+	if (get_provision_state() == STATE_DEV_UNPROV) {
+		rd_blink_led(0,5,5);
+		rd_blink_led(1,5,5);
+		rd_blink_led(2,5,5);
+		rd_blink_led(3,5,5);
+		rd_blink_led(4,5,5);
+		rd_blink_led(5,5,5);
 	}
 }
 
@@ -67,12 +72,12 @@ void RD_mod_in_out_init(void) {
 	rd_init_queue_led();
 	rd_init_queue_relay();
 
-	RD_Flash_Init();
-
 	RD_in_out_check_provision();
 
-//	RD_Secure_CheckInit();
-	//	Send_Relay_Stt_Message_RALL_PowerUp();
+	RD_Flash_Init();
+
+
+	RD_Secure_CheckInit();
 }
 
 
@@ -141,11 +146,11 @@ void RD_mod_in_out_loop(void) {
 		rd_check_adc();
 		clock_time_read_adc_ms = clock_time_ms();
 	}
-//	RD_Secure_CheckLoop();
+	RD_Secure_CheckLoop();
 }
 
 
-void RD_SetAndRsp_Switch(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff)
+void rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff)
 {
 	uart_CSend(" SetAndRsp_Switch\n");
 	light_onoff_idx(Light_index,OnOff_Set, 0);
@@ -154,7 +159,7 @@ void RD_SetAndRsp_Switch(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_on
 	if(GW_Add_Rsp_G_onoff != 0x0000)			// Rsp to Gw if GW_Add_Rsp_G_onoff != 0x0000;
 	{
 		uart_CSend("send on_off\n");
-		RD_Send_Relay_Stt(Light_index + 1, OnOff_Set);
+		rd_send_relay_stt(Light_index + 1, OnOff_Set);
 	}
 }
 

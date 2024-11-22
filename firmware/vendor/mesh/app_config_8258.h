@@ -143,7 +143,7 @@ extern "C" {
 
 #define ADC_MODE		ADC_BASE_MODE
 #define ADC_CHNM_ANA_INPUT 		GPIO_PB6 // one of ADC_GPIO_tab[]  //RD_EDIT: adc_init
-#define ADC_PRESCALER	ADC_PRESCALER_1F8
+#define ADC_PRESCALER	ADC_PRESCALER_1F4
 #endif
 
 #define ONLINE_STATUS_EN        0

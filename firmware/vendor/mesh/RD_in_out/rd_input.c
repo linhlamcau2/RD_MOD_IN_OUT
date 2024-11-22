@@ -36,6 +36,8 @@ u8 rd_handle_input_press(u8 idx)
 {
 	u8 status_in = MODE_PULSING;
 	u16 sence_id = get_sence_input(idx);
+
+	rd_blink_led(idx,1,2);
 	rd_update_input_stt(idx,status_in,sence_id);
 	if(sence_id)
 	{
@@ -53,9 +55,10 @@ u8 rd_handle_input_asyn(u8 idx)
 {
 	u8 status = rd_input_state[idx];
 	u16 sence_id = get_sence_input(idx);
-	rd_update_input_stt(idx,status,sence_id);
-
 	u8 stt_sence = get_stt_sence(idx);
+
+	rd_on_off_led(idx,status);
+	rd_update_input_stt(idx,status,sence_id);
 	if(sence_id && stt_sence == status)
 	{
 		rd_input_call_sence(sence_id);
@@ -78,7 +81,7 @@ u8 rd_read_input(u8 id)
 
 u8 rd_detect_press(u8 id)
 {
-	if (rd_read_input(id) != 0)
+	if (rd_read_input(id))
 	{
 		input_count[id]++;
 		if (input_count[id] == CYCLE_ACTIVE_BUTTON)
@@ -191,7 +194,7 @@ void reset_all_detect_input(u8 id)
 
 void RD_ScanKickAll(void)
 {
-	if(Kick_all_Flag==1)
+	if(Kick_all_Flag)
 	{
 		static uint32_t countDownt =0;
 		static uint8_t check_reset_Flag=0;
@@ -243,45 +246,87 @@ void rd_printf_adc()
 	if(clock_time_ms() - log_adc_ms > 3000)
 	{
 		app_battery_check_and_re_init_user_adc();
-		u16 adc_value = adc_sample_and_get_result();
-		RD_ev_log("rd_printf_adc: %d\n",adc_value);
+		u16 adc_val = adc_sample_and_get_result();
+		RD_ev_log("rd_printf_adc: %d\n",adc_val);
 		log_adc_ms = clock_time_ms();
+	}
+}
+
+void rd_read_delta_adc(u16 adc_val,u16 id_sence)
+{
+	static u32 last_tick_send = 0;  //TIME_MAX_SEND_ADC_MINUTE
+	static u16 val = 0;
+	static u8 count[2] = {0};
+	u8 idx_count = (adc_val > val) ? 1: 0;
+	u16 delta = (adc_val > val) ? (adc_val - val) : (val - adc_val);
+	count[!idx_count] = 0;
+	if(delta > get_delta_adc())
+	{
+		count[idx_count] ++;
+		if(count[idx_count] > COUNT_CHECK_ADC)
+		{
+			count[idx_count] = COUNT_CHECK_ADC + 1;
+		}
+		if(count[idx_count] == COUNT_CHECK_ADC)
+		{
+			val = adc_val;
+			RD_ev_log("val update : %d\n",val);
+			adc_value = val;
+			rd_update_adc_stt(val,id_sence);
+			last_tick_send = clock_time_ms();
+		}
+	}
+	else
+	{
+		count[0] = 0;
+		count[1] = 0;
+	}
+	if(clock_time_ms() - last_tick_send > TIME_MAX_SEND_ADC_MINUTE * 60 * 1000)
+	{
+		rd_update_adc_stt(val,id_sence);
+		last_tick_send = clock_time_ms();
+	}
+}
+
+void rd_check_condition_adc(u16 adc_val, u16 id_sence)
+{
+	static u8 count_check = 0;
+	if(rd_check_state_adc(adc_val))
+	{
+		count_check ++;
+		if(count_check == COUNT_CHECK_ADC)
+		{
+			adc_value = adc_val;
+			rd_input_call_sence(id_sence);
+		}
+		else if(count_check > COUNT_CHECK_ADC)
+		{
+			count_check = COUNT_CHECK_ADC +1;
+		}
+	}
+	else
+	{
+		count_check = 0;
 	}
 }
 
 void rd_check_adc()
 {
-	static u8 handle_check = 0;
-	static u8 count_check = 0;
-//	rd_printf_adc();
-	if(get_adc_sence())
+	app_battery_check_and_re_init_user_adc();
+	u16 adc_val = adc_sample_and_get_result();
+	u16 id_sence = get_adc_sence();
+
+	static u32 log_adc_ms = 0;
+	if(clock_time_ms() - log_adc_ms > 3000)
 	{
-		app_battery_check_and_re_init_user_adc();
-		u16 adc_val = adc_sample_and_get_result();
-		if(rd_check_state_adc(adc_val))
-		{
-			count_check ++;
-			if(count_check == COUNT_CHECK_ADC)
-			{
-				handle_check = 1;
-			}
-			else if(count_check > COUNT_CHECK_ADC)
-			{
-				count_check = COUNT_CHECK_ADC +1;
-				handle_check = 0;
-			}
-		}
-		else
-		{
-			adc_value = adc_val;
-			handle_check = 0;
-			count_check = 0;
-		}
-		if(handle_check)
-		{
-			adc_value = adc_val;
-			rd_input_call_sence(get_adc_sence());
-		}
+		RD_ev_log("rd_printf_adc: %d\n",adc_val);
+		log_adc_ms = clock_time_ms();
+	}
+	rd_read_delta_adc(adc_val,id_sence);
+
+	if(id_sence)
+	{
+		rd_check_condition_adc(adc_val,id_sence);
 	}
 }
 

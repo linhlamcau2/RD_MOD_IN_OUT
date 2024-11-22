@@ -48,6 +48,17 @@ u8 get_ele_linked(u8 idx)
 	return 0xff;
 }
 
+u8 is_output_linked(u8 idx_out)
+{
+	if(idx_out < NUM_OF_ELEMENT )
+	{
+		if(Sw_Flash_Data_Val.output_linked[idx_out] == 0xff)
+			return 0;
+		return 1;
+	}
+	return 1;
+}
+
 u16 get_adc_sence()
 {
 	return Sw_Flash_Data_Val.adc_setting.id_sence;
@@ -69,6 +80,7 @@ void RD_Flash_Save_DataDefault(void) {
 
 	Sw_Flash_Data_Val.Gw_Add = GW_ADD_DEFAULT;
 	Sw_Flash_Data_Val.PowerUpStt = RD_PowUpStore;
+	Sw_Flash_Data_Val.adc_setting.delta = DELTA_PERCENT_ADC_DEFAULT;
 	for( u8 i=0; i<NUM_OF_ELEMENT; i++)
 	{
 		Sw_Flash_Data_Val.output_linked[i] = 0xff;
@@ -88,35 +100,27 @@ static void RD_Flash_Data_Init(void) {
 	{
 		RD_Flash_Save_DataDefault();
 	}
-	RD_GATEWAYADDRESS = Sw_Flash_Data_Val.Gw_Add;
-
-	if (RD_GATEWAYADDRESS == 0x0000)
-	{
-		RD_GATEWAYADDRESS = 0x0001;
-	}
+	RD_GATEWAYADDRESS = Sw_Flash_Data_Val.Gw_Add ? Sw_Flash_Data_Val.Gw_Add : 0x0001;
 
 	RD_ev_log("Sw_Flash_Data: Sec %d,Pup %d,gw: %d\n",Sw_Flash_Data_Val.Secure_RD,Sw_Flash_Data_Val.PowerUpStt,Sw_Flash_Data_Val.Gw_Add);
 	RD_ev_log("1: mode: %d,stt: %d,sence %d\n",Sw_Flash_Data_Val.input_setting[0].mode,Sw_Flash_Data_Val.input_setting[0].stt_sence,Sw_Flash_Data_Val.input_setting[0].id_sence);
 	RD_ev_log("2: mode: %d,stt: %d,sence %d\n",Sw_Flash_Data_Val.input_setting[1].mode,Sw_Flash_Data_Val.input_setting[1].stt_sence,Sw_Flash_Data_Val.input_setting[1].id_sence);
 	RD_ev_log("3: mode: %d,stt: %d,sence %d\n",Sw_Flash_Data_Val.input_setting[2].mode,Sw_Flash_Data_Val.input_setting[2].stt_sence,Sw_Flash_Data_Val.input_setting[2].id_sence);
 	RD_ev_log("4: mode: %d,stt: %d,sence %d\n",Sw_Flash_Data_Val.input_setting[3].mode,Sw_Flash_Data_Val.input_setting[3].stt_sence,Sw_Flash_Data_Val.input_setting[3].id_sence);
-	RD_ev_log("adc: %d %d %d\n",Sw_Flash_Data_Val.adc_setting.adc_threshold,Sw_Flash_Data_Val.adc_setting.id_sence,Sw_Flash_Data_Val.adc_setting.type);
+	RD_ev_log("adc: %d %d %d %d\n",Sw_Flash_Data_Val.adc_setting.adc_threshold,Sw_Flash_Data_Val.adc_setting.id_sence,Sw_Flash_Data_Val.adc_setting.type,Sw_Flash_Data_Val.adc_setting.delta);
 	RD_ev_log("linked: 1-%d, 2-%d\n\n",Sw_Flash_Data_Val.output_linked[0],Sw_Flash_Data_Val.output_linked[1]);
 	if(get_provision_state() == STATE_DEV_PROVED)
 	{
 		#if(CONFIG_POWUP_EN)
-			uint8_t PowUpStt =0;
-			if(RD_PowUpOff == Sw_Flash_Data_Val.PowerUpStt) PowUpStt =0;
-			if(RD_PowUpOn == Sw_Flash_Data_Val.PowerUpStt) PowUpStt =1;
-
 			if(RD_PowUpStore != Sw_Flash_Data_Val.PowerUpStt)
 			{
+				uint8_t PowUpStt = Sw_Flash_Data_Val.PowerUpStt;
 				uart_CSend("  Set PowUp \n");
 				for(int i=0; i< NUM_OF_ELEMENT; i++)
 				{
 					light_onoff_idx(i,PowUpStt, 0);
 					set_on_power_up_onoff(i, 0, PowUpStt); // save for POWer_up
-					rd_onoff_relay(PowUpStt,i,0);
+					rd_init_onoff_relay(PowUpStt,i);
 				}
 			}
 			else
@@ -125,11 +129,27 @@ static void RD_Flash_Data_Init(void) {
 				{
 					u8 state = RD_get_on_off(i,0);
 					RD_ev_log("out %d: %d\n",i,state);
-					rd_onoff_relay(state,i,0);
+					rd_init_onoff_relay(state,i);
 				}
 			}
+			rd_rsp_state_output(Sw_Flash_Data_Val.Gw_Add);
 		#endif
 	}
+	else
+	{
+//		RD_Flash_Save_DataDefault();
+		for(int i=0; i< NUM_OF_ELEMENT; i++)
+		{
+			light_onoff_idx(i,0, 0);
+			set_on_power_up_onoff(i, 0, 0); // save for POWer_up
+			rd_init_onoff_relay(0,i);
+		}
+	}
+}
+
+u8 get_state_secure()
+{
+	return Sw_Flash_Data_Val.Secure_RD;
 }
 
 void RD_init_flash_out_handle()
@@ -138,7 +158,6 @@ void RD_init_flash_out_handle()
 	{
 		u8 state = RD_get_on_off(i,0);
 		RD_ev_log("out %d: %d\n",i,state);
-//		RD_mod_io_onoff(state,i,0);
 	}
 }
 
@@ -164,7 +183,7 @@ void RD_Flash_SaveGwAdd(uint16_t Gw_Add)
 
 u8 rd_save_mode_input(u8 idx, u8 mode)
 {
-	if(idx <= NUM_OF_INPUT  && mode <= INPUT_STATE_MAX)
+	if(idx > 0 && idx <= NUM_OF_INPUT  && mode <= INPUT_STATE_MAX)
 	{
 		Sw_Flash_Data_Val.input_setting[idx-1].mode = mode ;
 		rd_flash_save();
@@ -218,6 +237,22 @@ u8 rd_save_sence_adc(u16 adc_threshold, u16 id_sence,u8 type)
 	return 1;
 }
 
+u8 rd_save_delta_adc(u8 delta)
+{
+	if(delta >4 && delta <100)
+	{
+		Sw_Flash_Data_Val.adc_setting.delta = delta;
+		rd_flash_save();
+		return 1;
+	}
+	return 0;
+}
+
+u16 get_delta_adc()
+{
+	return Sw_Flash_Data_Val.adc_setting.delta * MAX_ADC / 100;
+}
+
 u8 rd_check_state_adc(u16 adc_value)
 {
 	if(Sw_Flash_Data_Val.adc_setting.type == TYPE_ADC_GREATER)
@@ -226,3 +261,4 @@ u8 rd_check_state_adc(u16 adc_value)
 		return (adc_value < Sw_Flash_Data_Val.adc_setting.adc_threshold);
 	return 0;
 }
+

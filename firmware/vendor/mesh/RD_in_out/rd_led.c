@@ -86,6 +86,7 @@ void rd_hanlde_led()
 				int err = rd_dequeue(&(rd_queue_led[i]),(void *)&led_handle);
 				if(err != -1)
 				{
+//					RD_ev_log("led_queue \n");
 					last_tick_100ms[i] = clock_time_ms();
 					gpio_write(arr_led[i],!(led_handle.light));
 				}
@@ -98,7 +99,8 @@ void rd_init_queue_led()
 {
 	for(int i=0; i<NUM_LED;i++)
 	{
-		rd_initQueue(&rd_queue_led[i],NUM_MAX_QUEUE_HANDLE_LED,SIZE_QUEUE_HANDLE_LED,(void *)led_handle[i],rd_hanlde_led);
+		rd_initQueue(&rd_queue_led[i],NUM_MAX_QUEUE_HANDLE_LED,SIZE_QUEUE_HANDLE_LED,(void *)led_handle[i]);
 	}
+	rd_register_func_loop(rd_hanlde_led);
 }
 

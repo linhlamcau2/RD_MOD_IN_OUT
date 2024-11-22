@@ -21,6 +21,7 @@ rd_rsp_mesh_t rd_rsp_mesh[NUM_MAX_QUEUE_RSP];
 
 void rd_call_tx(u16 op_code, u8 *par, u16 par_len, u16 addr_dst)
 {
+	RD_ev_log("rd_call_tx 0\n");
 	rd_rsp_mesh_t mess_tx;
 	mess_tx.op_code_rsp = op_code;
 	if(par_len <=8)
@@ -37,13 +38,17 @@ void rd_call_tx(u16 op_code, u8 *par, u16 par_len, u16 addr_dst)
 
 void rd_call_tx2(u16 op_code, u8 *par, u16 par_len, u16 addr_dst, u16 addr_src)
 {
-	rd_rsp_mesh_t mess_tx;
-	mess_tx.op_code_rsp = op_code;
-	memcpy((void *)mess_tx.par,(void *)par,par_len);
-	mess_tx.par_len = par_len;
-	mess_tx.addr_dst = addr_dst;
-	mess_tx.addr_src = addr_src;
-	rd_enqueue(&rd_queue_rsp,(void *)&mess_tx);
+	RD_ev_log("rd_call_tx 2\n");
+	if(par_len <=8)
+	{
+		rd_rsp_mesh_t mess_tx;
+		mess_tx.op_code_rsp = op_code;
+		memcpy((void *)mess_tx.par,(void *)par,par_len);
+		mess_tx.par_len = par_len;
+		mess_tx.addr_dst = addr_dst;
+		mess_tx.addr_src = addr_src;
+		rd_enqueue(&rd_queue_rsp,(void *)&mess_tx);
+	}
 }
 
 static void rd_rsp()
@@ -52,7 +57,7 @@ static void rd_rsp()
 	int err = rd_dequeue(&rd_queue_rsp,(void *)&mess_tx);
 	if(err != -1)
 	{
-		RD_ev_log("rd_rsp\n");
+		RD_ev_log("rd_rsp opcode: %d\n",mess_tx.op_code_rsp);
 		int rsp_max = (mess_tx.op_code_rsp == SCENE_RECALL_NOACK) ? 0: RD_MAXRESPONESEND;
 		if(mess_tx.op_code_rsp == G_ONOFF_STATUS)
 		{

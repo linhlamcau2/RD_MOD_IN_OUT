@@ -31,9 +31,14 @@ static int rd_onoff_output(u8 stt,u8 id_relay, int rsp)
 	rd_call_queue_relay(stt,id_relay);
 	if(rsp == 1)
 	{
-		RD_SetAndRsp_Switch(id_relay,stt,RD_GATEWAYADDRESS);
+		rd_rsp_stt_relay(id_relay,stt,RD_GATEWAYADDRESS);
 	}
 	return 0;
+}
+
+int rd_init_onoff_relay(u8 stt,u8 id_relay)
+{
+	return rd_onoff_output(stt,id_relay,0);
 }
 
 int rd_onoff_relay(u8 stt,u8 id_relay, int rsp)
@@ -41,6 +46,8 @@ int rd_onoff_relay(u8 stt,u8 id_relay, int rsp)
 	u8 state = RD_get_on_off(id_relay,0);
 	if(stt != state)
 	{
+		if(rsp == 0 && is_output_linked(id_relay))    //RD_EDIT: check output linked
+			return 0;
 		return rd_onoff_output(stt,id_relay,rsp);
 	}
 	return 0;
@@ -65,7 +72,9 @@ void rd_handle_relay()
 			int err = rd_dequeue(&(rd_queue_relay[i]),(void *)&relay_handle);
 			if(err != -1)
 			{
+				RD_ev_log("relay queue\n");
 				gpio_write(arr_relay[i],relay_handle.stt);
+				rd_on_off_led(LED_OUT +i,relay_handle.stt);
 			}
 		}
 	}
@@ -74,7 +83,8 @@ void rd_init_queue_relay()
 {
 	for(int i =0; i<NUM_OF_RELAY;i++)
 	{
-		rd_initQueue(&(rd_queue_relay[i]),NUM_MAX_QUEUE_RELAY,SIZE_QUEUE_HANDLE_LED,(void *)relay_handle[i],rd_handle_relay);
+		rd_initQueue(&(rd_queue_relay[i]),NUM_MAX_QUEUE_RELAY,SIZE_QUEUE_HANDLE_LED,(void *)relay_handle[i]);
 	}
+	rd_register_func_loop(rd_handle_relay);
 }
 

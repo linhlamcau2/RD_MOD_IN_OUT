@@ -21,11 +21,19 @@ typedef struct {
 
 typedef void (*rd_func_handle_t)(void);
 
-//void rd_initQueue(rd_queue_t *q, int maxSize, int elementSize, void *dataArray);
-int rd_initQueue(rd_queue_t *q, int maxSize, int elementSize, void *dataArray,rd_func_handle_t func_handle);
+#define rd_initQueue(...) GET_MACRO(__VA_ARGS__, rd_initQueue2, rd_initQueue1)(__VA_ARGS__)
+#define GET_MACRO(_1, _2,_3,_4,_5, NAME, ...) NAME
+
+int rd_initQueue1(rd_queue_t *q, int maxSize, int elementSize, void *dataArray);
+int rd_initQueue2(rd_queue_t *q, int maxSize, int elementSize, void *dataArray,rd_func_handle_t func_handle);
+
 int rd_enqueue(rd_queue_t *q, void *element);
 int rd_dequeue(rd_queue_t *q, void *element);
 int isQueueEmpty(rd_queue_t *q);
 
+int get_number_func_loop();
+int rd_register_func_loop(rd_func_handle_t func_handle);
+
 void rd_handle_queue_loop();
+
 #endif

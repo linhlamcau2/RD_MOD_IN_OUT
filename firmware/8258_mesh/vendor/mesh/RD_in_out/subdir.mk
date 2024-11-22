@@ -7,14 +7,12 @@ C_SRCS += \
 ../vendor/mesh/RD_in_out/rd_in_out.c \
 ../vendor/mesh/RD_in_out/rd_input.c \
 ../vendor/mesh/RD_in_out/rd_led.c \
-../vendor/mesh/RD_in_out/rd_overloading.c \
 ../vendor/mesh/RD_in_out/rd_relay.c 
 
 OBJS += \
 ./vendor/mesh/RD_in_out/rd_in_out.o \
 ./vendor/mesh/RD_in_out/rd_input.o \
 ./vendor/mesh/RD_in_out/rd_led.o \
-./vendor/mesh/RD_in_out/rd_overloading.o \
 ./vendor/mesh/RD_in_out/rd_relay.o 
 
 

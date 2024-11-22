@@ -75,7 +75,7 @@
 #define INPUT_READ(i)				gpio_read(Input_Array[i])
 #define RD_IN_READ(i)				INPUT_READ(i)
 #define BIT_INPUT(i)				(Input_Array[i] && 0xff)
-extern uint32_t Input_Array[];
+
 
 #define OUTPUT_WRITE(i,t)           gpio_write(Output_Array[i], t)
 #define LED_WRITE(i,t)				gpio_write(arr_led[i],t)
@@ -100,6 +100,8 @@ extern uint32_t Input_Array[];
 
 #define 	TSS_DEFAULT					0x0005
 
+#define 	DELTA_ADC					200
+//#define		COUNT_CHECK_ADC				10
 /*--------------------------- enum ----------------------------------*/
 typedef enum {
 	Relay_On = 0x01U, Relay_Off = 0x00U
@@ -122,93 +124,8 @@ typedef enum {
 } Button_Stt_Type;
 
 typedef struct {
-	uint32_t countLastOfMacID[MAX_NUM_K9ONOFF];
-} K9bOnOff_countLast_st;
-
-typedef struct {
-	uint32_t countLastOfMacID[MAX_NUM_K9BHC];
-} K9bHc_countLast_st;
-typedef struct {
 	uint8_t OTA_Flag; // check in OTA mode. Note
-
 } Sw_Working_Stt_Str;
-
-typedef enum {
-	NONE_FUN = 0x00, TOGGLE_FUN = 0x01, OFF_FUN = 0x02, ON_FUN = 0x03
-} K9B_Function_Button_t;
-
-typedef struct {
-	uint8_t Pair_K9BOnOff_Flag;
-	uint8_t Button_K9BOnOff_Pair;
-	uint8_t Pair_K9BHc_Flag;
-	uint16_t Add_K9B_HCSet; // HC set add for K9B remote
-	uint8_t Bt_K9B_CountPress[3];
-	uint32_t ClockTimeSetHc_ms;
-} Sw_Woring_K9B_Str;
-
-typedef enum
-{
-	UNPAIR = 0,
-	PAIRED,
-}k9b_handle_state_t;
-
-typedef struct {
-	uint32_t MacOld;
-	uint32_t MacNow;
-	uint8_t Button_ID;
-	uint8_t ButtonPressCounter;
-	uint32_t ClockTimePress_ms;
-} Sw_press_K9BHC_Str;
-typedef struct {
-	uint32_t Time_Last_Update_ms;
-	uint8_t Update_Stt_Flag[5];
-} Sw_Update_Stt_Str;
-
-typedef struct {
-	uint16_t CycleBlink;
-	uint32_t Count_Toggle;
-	uint32_t Last_ClockTime_Toggle;
-} Sw_SingleBlink_Str;
-
-typedef struct {
-	uint32_t Time_Start_CountDown_s;
-	uint32_t Time_CountDown_s;
-	uint8_t Taget;
-} CountDown_Str;
-
-typedef struct
-{
-	int time_delay_100ms;
-	int light;
-}out_stt_t;
-
-typedef enum
-{
-	ON_OFF_BASIS = 0,
-	BLINK_BLINK,
-}mode_led_t;
-
-
-#define MAX_STATE_QUEUE_CALLER 22
-#define	CYCLE_MAX	8
-#define	TIME_DELAY_MAX_100MS	5
-
-#define MAX_STATE_QUEUE_CALLEE 10
-
-typedef struct
-{
-	int light[MAX_STATE_QUEUE_CALLEE];
-	int front;
-	int rear;
-}queue_write_out_t;
-
-typedef struct
-{
-	out_stt_t out_status[MAX_STATE_QUEUE_CALLER];
-	int front;
-	int rear;
-}queue_handle_t;
-
 
 enum
 {
@@ -232,10 +149,26 @@ enum
 	TYPE_ADC_GREATER,
 	TYPE_ADC_LOWER
 };
+
+enum
+{
+	LED_IN_1 = 0,
+	LED_IN_2,
+	LED_IN_3,
+	LED_IN_4,
+	LED_OUT_1,
+	LED_OUT_2,
+	LED_OUT = LED_OUT_1,
+	LED_RELAY_1 = LED_OUT_1,
+	LED_RELAY_2 = LED_OUT_2,
+};
 /*--------------------------- Variable ----------------------------------*/
 
 extern uint8_t Kick_all_Flag;
 extern Sw_Working_Stt_Str Sw_Working_Stt_Val;
+extern u32 arr_led[];
+extern uint32_t Input_Array[];
+
 
 /*--------------------------- Function ----------------------------------*/
 
@@ -245,7 +178,7 @@ void RD_mod_in_out_loop(void);
 
 void RD_mod_in_out_factory_reset();
 void RD_mod_io_gw_reset(void);
-void RD_SetAndRsp_Switch(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
+void rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
 void rd_module_io_handle_input_onoff(void);
 
 void rd_set_update_in_stt();
@@ -265,6 +198,7 @@ void rd_on_off_led(u8 idx_led, u8 status);
 
 
 void rd_init_queue_relay();
+int rd_init_onoff_relay(u8 stt,u8 id_relay);
 int rd_onoff_relay(u8 stt,u8 id_relay, int rsp);
 void rd_toggle_relay(uint8_t id_ele, int rsp);
 

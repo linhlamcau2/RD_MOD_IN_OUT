@@ -24,8 +24,9 @@
 #define CYCLE_DETECT_LEVEL			20
 #define CYCLE_READ_BT_MS			5 // time of 1 cycle check read bt
 #define CYCLE_HOLD_BUTTON			500
-#define CYCLE_READ_ADC_MS			50
-#define COUNT_CHECK_ADC				15
+#define CYCLE_READ_ADC_MS			200
+#define COUNT_CHECK_ADC				5
+#define TIME_MAX_SEND_ADC_MINUTE	5
 
 #define FAST_PROVISION_EN_RD			1
 #define K9B_REMOTE_SUPPORT_ON		1

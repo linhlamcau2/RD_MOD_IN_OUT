@@ -11,7 +11,17 @@ int is_full_register()
 	return (rd_func_handle_count == MAX_POSSIBLE_FUNCS -1);
 }
 
-int rd_initQueue(rd_queue_t *q, int maxSize, int elementSize, void *dataArray,rd_func_handle_t func_handle)
+int rd_initQueue1(rd_queue_t *q, int maxSize, int elementSize, void *dataArray)
+{
+    q->data = dataArray;
+    q->front = -1;
+    q->rear = 0;
+    q->maxSize = maxSize;
+    q->elementSize = elementSize;
+    return 0;
+}
+
+int rd_initQueue2(rd_queue_t *q, int maxSize, int elementSize, void *dataArray,rd_func_handle_t func_handle)
 {
 	if(is_full_register())
 		return -1;
@@ -24,9 +34,17 @@ int rd_initQueue(rd_queue_t *q, int maxSize, int elementSize, void *dataArray,rd
     return 0;
 }
 
-int get_num_queue()
+int rd_register_func_loop(rd_func_handle_t func_handle)
 {
-	return MAX_POSSIBLE_FUNCS -rd_func_handle_count;
+	if(is_full_register())
+			return -1;
+	rd_func_handle[rd_func_handle_count ++] = func_handle;
+	return 0;
+}
+
+int get_number_func_loop()
+{
+	return MAX_POSSIBLE_FUNCS - rd_func_handle_count;
 }
 
 void rd_handle_queue_loop()
@@ -38,6 +56,7 @@ void rd_handle_queue_loop()
 		}
 	}
 }
+
 int isQueueEmpty(rd_queue_t *q)
 {
     return (q->front == -1);

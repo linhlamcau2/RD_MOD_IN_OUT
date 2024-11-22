@@ -69,19 +69,14 @@ void RD_Secure_CheckLoop(void)
 		if( ((clock_time_ms() - Secure_Stt_Val.Time_Start_check) >=  TIME_UOT_SECURE) && (Sw_Working_Stt_Val.OTA_Flag == 0x00))
 		{
 			uart_CSend("Secure Time out.\n");
-			//RD_Sw_FacReset_ByUser();
-//			RD_Switchx4_FactoryReset();
 			RD_mod_in_out_factory_reset();
 		}
 
 		if(((clock_time_ms() - Secure_Stt_Val.Time_Check_Key_Fail) >=  TIME_UOT_KEY_FAIL) && (Secure_Stt_Val.Check_Key_Fail == RD_EN))
 		{
 			uart_CSend("Secure Key fail\n");
-			//RD_Sw_FacReset_ByUser();
-//			RD_Switchx4_FactoryReset();
 			RD_mod_in_out_factory_reset();
 		}
-
 	}
 }
 //
@@ -91,18 +86,18 @@ static void RD_Secure_Check(void)
 	unsigned char Param[16] = {0x24, 0x02, 0x28, 0x04, 0x28, 0x11, 0x20, 0x20, 0x5D, 0x14, 0x30, 0x38, 0xC1, 0xA4, 0x39, 0x00};
 	unsigned char Result[32] = {0x00};
 	aes_encrypt(Key_in,Param,Result);
-	uart_CSend("\nkey out: ");
-	for(int i=0; i<32; i++)
-	{
-		char UART_TempSend[128];
-		sprintf(UART_TempSend,"0x%x -",Result[i]);
-		uart_CSend(UART_TempSend);
-	}
+//	uart_CSend("\nkey out: ");
+//	for(int i=0; i<32; i++)
+//	{
+//		char UART_TempSend[128];
+//		sprintf(UART_TempSend,"0x%x -",Result[i]);
+//		uart_CSend(UART_TempSend);
+//	}
 }
 
 void RD_Secure_CheckInit(void)
 {
-	Secure_Stt_Val.Secure_Pass = Sw_Flash_Data_Val.Secure_RD;
+	Secure_Stt_Val.Secure_Pass = get_state_secure();
 
 	if((Secure_Stt_Val.Secure_Pass == FALSE) && (get_provision_state() == STATE_DEV_PROVED))
 	{

@@ -27,7 +27,9 @@ static void RD_Mess_RspSecure(uint8_t Secure_Rsp_Stt, uint16_t Gw_Add_Buff)
 	Mess_buff[5]	= Secure_Rsp_Stt ? 0x00: 0xFE ;
 	Mess_buff[6] 	= Secure_Rsp_Stt ? VERSION_FIRM_H : 0xFF;
 	Mess_buff[7]	= Secure_Rsp_Stt ? VERSION_FIRM_L : 0xFE;
-	mesh_tx_cmd2normal_primary(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff, RD_MAXRESPONESEND);
+
+	rd_call_tx(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff);
+//	mesh_tx_cmd2normal_primary(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff, RD_MAXRESPONESEND);
 	RD_ev_log("Rsp Secure : %d \n",Secure_Rsp_Stt);
 }
 
@@ -76,39 +78,20 @@ static void RD_Handle_MessType(uint8_t par[8], uint16_t Gw_Add_Buff)
 static void RD_Handle_SaveGw(uint8_t par[8], uint16_t Gw_Add_Buff)
 {
 	uint16_t GwAddToSave = par[3]<<8 | par[2];
-
-	if(GwAddToSave == 0x0000) 	{RD_GATEWAYADDRESS = Gw_Add_Buff;} // save gw add send mess
-	else						{RD_GATEWAYADDRESS = GwAddToSave;} // save other gw add
-
-	char UART_TempSend[64];
-	sprintf(UART_TempSend,"Save GWAdd:%x \n", RD_GATEWAYADDRESS);
-	uart_CSend(UART_TempSend);
-	if(get_provision_state() == STATE_DEV_PROVED)
-	{
-		RD_Flash_SaveGwAdd(RD_GATEWAYADDRESS);
-		char UART_TempSend[64];
-		sprintf(UART_TempSend,"Save GWAdd to Flash :%x \n", RD_GATEWAYADDRESS);
-		uart_CSend(UART_TempSend);
-	}
-	else
-	{
-		char UART_TempSend[64];
-		sprintf(UART_TempSend,"Save GWAdd to Ram for test :%x \n", RD_GATEWAYADDRESS);
-		uart_CSend(UART_TempSend);
-	}
+	RD_GATEWAYADDRESS = GwAddToSave ? GwAddToSave : Gw_Add_Buff;
+	RD_ev_log("Save GWAdd:%x \n", RD_GATEWAYADDRESS);
+	RD_Flash_SaveGwAdd(RD_GATEWAYADDRESS);
 	uint8_t Mess_buff[8] = {0};
 
 	Mess_buff[0]	= RD_HEADER_SAVE_GW_ADD 				& 0xff;
 	Mess_buff[1]	= (RD_HEADER_SAVE_GW_ADD >> 8) 			& 0xff;
-	Mess_buff[2]	= Sw_Flash_Data_Val.Gw_Add		 		& 0xff;
-	Mess_buff[3]	= (Sw_Flash_Data_Val.Gw_Add >> 8) 		& 0xff;
+	Mess_buff[2]	= RD_GATEWAYADDRESS		 				& 0xff;
+	Mess_buff[3]	= (RD_GATEWAYADDRESS >> 8) 				& 0xff;
 	Mess_buff[4]	= PROVIDER_ID  							& 0xff;
 	Mess_buff[5]	= (PROVIDER_ID >> 8) 					& 0xff;
-	Mess_buff[6] 	= 0x00;
-	Mess_buff[7]	= 0x00;
 
-	mesh_tx_cmd2normal_primary(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff, RD_MAXRESPONESEND); // rsp to Gw send mess
-//	RD_SwitchAc4Ch_BlinkSet(5, 100);
+	rd_call_tx(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff);
+//	mesh_tx_cmd2normal_primary(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff, RD_MAXRESPONESEND); // rsp to Gw send mess
 }
 
 
@@ -118,18 +101,11 @@ static void RD_Hanlde_FactoryTestEnd(uint16_t Gw_Add_Buff)
 
 	Mess_buff[0]	= RD_HEADER_FACTORY_TEST_END & 0xff;
 	Mess_buff[1]	= (RD_HEADER_FACTORY_TEST_END >> 8) & 0xff;
-	Mess_buff[2]	= 0x00;
-	Mess_buff[3]	= 0x00;
-	Mess_buff[4]	= 0x00;
-	Mess_buff[5]	= 0x00;
-	Mess_buff[6] 	= 0x00;
-	Mess_buff[7]	= 0x00;
 
-	mesh_tx_cmd2normal_primary(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff, RD_MAXRESPONESEND);
 
-	uint16_t GWAdresss = 0x0000;
-	GWAdresss = 0x0001;				// rRess
-	RD_Flash_SaveGwAdd(GWAdresss);
+	rd_call_tx(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff);
+//	mesh_tx_cmd2normal_primary(RD_OPCODE_TYPE_RSP, Mess_buff, 8, Gw_Add_Buff, RD_MAXRESPONESEND);
+	RD_Flash_SaveGwAdd(0x0001);
 }
 
 static void RD_Handle_KickAll(uint8_t par[8], uint16_t Gw_Add_Buff)
@@ -138,7 +114,9 @@ static void RD_Handle_KickAll(uint8_t par[8], uint16_t Gw_Add_Buff)
 	{
 		uart_CSend("Reset All device. countdown 60s to reset \n");
 		Kick_all_Flag=1;
-		mesh_tx_cmd2normal_primary(RD_OPCODE_TYPE_RSP, par, 8, Gw_Add_Buff, RD_MAXRESPONESEND);
+
+		rd_call_tx(RD_OPCODE_TYPE_RSP, par, 8, Gw_Add_Buff);
+//		mesh_tx_cmd2normal_primary(RD_OPCODE_TYPE_RSP, par, 8, Gw_Add_Buff, RD_MAXRESPONESEND);
 	}
 }
 
@@ -178,12 +156,12 @@ int RD_Messenger_ProcessCommingProcess_Type(u8 *par, int par_len, mesh_cb_fun_pa
 	return 0;
 }
 
-void RD_Send_Relay_Stt(uint8_t Relay_ID, uint8_t Relay_Stt)
+void rd_send_relay_stt(uint8_t Relay_ID, uint8_t Relay_Stt)
 {
 	uint8_t Mess_Buff[8] = {0};
 	uint16_t Element_Add = 0x0000;
 
-	Mess_Buff[0]		= Relay_Stt;
+	Mess_Buff[1]		= Relay_Stt;
 	Element_Add 		= ele_adr_primary + (Relay_ID -1);
 
 	rd_call_tx2(G_ONOFF_STATUS, Mess_Buff, 8, RD_GATEWAYADDRESS, Element_Add);
@@ -236,7 +214,9 @@ static void RD_Handle_AutoCreateGr(u8 *par, uint16_t Gw_Add_Buff, mesh_cb_fun_pa
 	const uint16_t groupType 		= 0x001f; // switch Group
 	uint16_t id_group = 0x0000;
 	uint16_t id_group_type = 0x0000;
-	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff, 2);
+
+	rd_call_tx(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff);
+//	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff, 2);
 
 	id_group = (par[2] | par[3]<<8);
 	id_group_type = id_group + groupType;
@@ -252,7 +232,9 @@ static void RD_Handle_AutoDeleteGr(u8 *par, uint16_t Gw_Add_Buff, mesh_cb_fun_pa
 	const uint16_t groupType 		= 0x001f; // switch Group
 	uint16_t id_group = 0x0000;
 	uint16_t id_group_type = 0x0000;
-	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff, 2);
+
+	rd_call_tx(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff);
+//	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff, 2);
 
 	id_group = (par[2] | par[3]<<8);
 	id_group_type = id_group + groupType;
@@ -271,6 +253,7 @@ static void rd_handle_setting_input(u8 *par,int par_len, u16 gw_addr)
 	u8 err = rd_save_mode_input(idx,mode);
 	if(err)
 	{
+		rd_blink_led(idx-1,2,5);
 		reset_detect_input(idx-1);
 		rd_call_tx(RD_OPCODE_SCENE_RSP,par,8,gw_addr);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
@@ -285,6 +268,7 @@ static void rd_handle_setting_link(u8 *par,int par_len, u16 gw_addr)
 	u8 err = rd_save_linked_io(idx_in,idx_out);
 	if(err)
 	{
+		rd_blink_led(idx_in-1,2,5);
 		rd_call_tx(RD_OPCODE_SCENE_RSP,par,8,gw_addr);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
 	}
@@ -307,13 +291,17 @@ void rd_handle_setting_sence_input(u8 *par,int par_len, u16 gw_addr)
 	u8 type_input = par[2];
 	u16 id_sence = (par[4] << 8) | (par[3]);
 
-	RD_ev_log("setting_sence type_input: %d sc : %d\n",type_input,id_sence);
+	RD_ev_log("setting_sence type_input: %d sc : %d idx: %d stt_sence: %d\n",type_input,id_sence,par[5],par[6]);
 	u8 err = 0;
 	if(type_input == TYPE_IN)
 	{
 		u8 idx_in = par[5];
 		u8 stt_sence = par[6] ;
 		err = rd_save_sence_in(idx_in,stt_sence,id_sence);
+		if(err)
+		{
+			rd_blink_led(idx_in-1,2,5);
+		}
 	}
 	else if(type_input == TYPE_ADC_GREATER || type_input == TYPE_ADC_LOWER)
 	{
@@ -325,6 +313,29 @@ void rd_handle_setting_sence_input(u8 *par,int par_len, u16 gw_addr)
 	{
 		rd_call_tx(RD_OPCODE_SCENE_RSP,par,8,gw_addr);
 	}
+}
+
+void rd_rsp_state_output(u16 gw_addr)
+{
+	u8 rsp[8] = {0};
+	rsp[0] = RD_HEADER_OUTPUT_STATUS & 0xff;
+	rsp[1] = RD_HEADER_OUTPUT_STATUS >> 8;
+	rsp[2] = NUM_OF_ELEMENT;
+	rsp[3] = RD_get_on_off(0,0);
+	rsp[4] = RD_get_on_off(1,0);
+	rd_call_tx(RD_OPCODE_SCENE_RSP, rsp, 8, gw_addr);
+}
+void rd_handle_rsp_state_output(u8 *par,int par_len,u16 gw_addr)
+{
+	u8 rsp[8] = {0};
+	rsp[0] = par[0];
+	rsp[1] = par[1];
+	rsp[2] = NUM_OF_ELEMENT;
+	rsp[3] = RD_get_on_off(0,0);
+	rsp[4] = RD_get_on_off(1,0);
+//	rsp[5] = get_status_input(3);
+//	RD_ev_log("state_all 1:%d 2:%d 3:%d 4:%d adc:%d\n",rsp[2],rsp[3],rsp[4],rsp[5],adc_val);
+	rd_call_tx(RD_OPCODE_SCENE_RSP, rsp, 8, gw_addr);
 }
 
 void rd_handle_rsp_state_all_input(u8 *par,int par_len,u16 gw_addr)
@@ -339,9 +350,19 @@ void rd_handle_rsp_state_all_input(u8 *par,int par_len,u16 gw_addr)
 	rsp[5] = get_status_input(3);
 	rsp[7] = adc_val & 0xff;
 	rsp[6] = adc_val >> 8;
-	RD_ev_log("state_all 1:%d 2:%d 3:%d 4:%d adc:%d\n",rsp[2],rsp[3],rsp[4],rsp[5],adc_val);
+//	RD_ev_log("state_all 1:%d 2:%d 3:%d 4:%d adc:%d\n",rsp[2],rsp[3],rsp[4],rsp[5],adc_val);
 	rd_call_tx(RD_OPCODE_SCENE_RSP, rsp, 8, gw_addr);
 //	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, rsp, 8, gw_addr, RD_MAXRESPONESEND);
+}
+
+void rd_handle_rsp_set_delta_adc(u8 *par,int par_len,u16 gw_addr)
+{
+	u8 delta = par[2];
+	int err = rd_save_delta_adc(delta);
+	if(err && par_len == 8)
+	{
+		rd_call_tx(RD_OPCODE_SCENE_RSP, par, 8, gw_addr);
+	}
 }
 
 int RD_Messenger_ProcessCommingProcess_SCENE(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par)
@@ -372,6 +393,12 @@ int RD_Messenger_ProcessCommingProcess_SCENE(u8 *par, int par_len, mesh_cb_fun_p
 			break;
 		case RD_HEADER_STATUS_ALL_INPUT:
 			rd_handle_rsp_state_all_input(par, par_len,Gw_Add_Buff);
+			break;
+		case RD_HEADER_SET_DELTA_ADC:
+			rd_handle_rsp_set_delta_adc(par, par_len,Gw_Add_Buff);
+			break;
+		case RD_HEADER_OUTPUT_STATUS:
+			rd_handle_rsp_state_output(par, par_len,Gw_Add_Buff);
 			break;
 		case RD_AUTO_CREATE_GR:
 			RD_Handle_AutoCreateGr(par, Gw_Add_Buff, cb_par );
@@ -417,6 +444,7 @@ void rd_input_call_sence(uint16_t sence_id)
 	RD_Call_Scene(sence_id, mess_id ++);
 }
 
+
 void rd_update_input_stt(u8 idx_in, u8 status_in, u16 sence)
 {
 	uint8_t buff[8] = {0};
@@ -434,7 +462,7 @@ void rd_update_input_stt(u8 idx_in, u8 status_in, u16 sence)
 	uart_CSend("update stt \n");
 }
 
-void rd_update_adc_stt(u16 adc, u16 sence)
+void rd_update_adc_stt(u16 adc, u16 id_sence)
 {
 	uint8_t buff[8] = {0};
 
@@ -442,8 +470,8 @@ void rd_update_adc_stt(u16 adc, u16 sence)
 	buff[1]		= RD_HEADER_ADC_STATUS >>8;
 	buff[3]		= adc & 0xFF;
 	buff[2]		= adc >> 8;
-	buff[4] 	= sence & 0xFF;
-	buff[5] 	= sence >>8;
+	buff[4] 	= id_sence & 0xFF;
+	buff[5] 	= id_sence >>8;
 
 	rd_call_tx(RD_OPCODE_INPUT_RSP,buff,8,RD_GATEWAYADDRESS);
 }

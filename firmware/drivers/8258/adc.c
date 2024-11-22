@@ -249,6 +249,7 @@ void adc_set_ain_pre_scaler(ADC_PreScalingTypeDef v_scl)
 		analog_write (0xF9, tmp);
 	}
 	adc_pre_scale = 1<<(unsigned char)v_scl;
+//	adc_pre_scale = 3;				//RD_EDIT: fix adc_pre_scale
 }
 
 /**
@@ -299,7 +300,9 @@ else if(ADC_SAMPLE_RATE_SELECT==ADC_SAMPLE_RATE_96K)
 	adc_set_state_length(240, 0, 10);  	//set R_max_mc=240,R_max_s=10
 }
 
-	adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);//set channel Vref,
+	adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);
+
+//	adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_0P9V);//set channel Vref,    //RD_EDIT: init adc
    // ADC_Vref = (unsigned char)ADC_VREF_1P2V;
 	adc_set_vref_vbat_divider(ADC_VBAT_DIVIDER_OFF);//set Vbat divider select,
 //	ADC_VBAT_Scale = VBAT_Scale_tab[ADC_VBAT_DIVIDER_OFF];
@@ -457,7 +460,8 @@ unsigned int adc_sample_and_get_result(void)
 
 
 
-	return adc_vol_mv;
+//	return adc_vol_mv;
+	return adc_result;
 }
 
 /**

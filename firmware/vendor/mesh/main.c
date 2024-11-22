@@ -33,6 +33,7 @@
 
 #include "RD_log/RD_log.h"
 #include "RD_in_out/rd_in_out.h"
+#include "rd_queue.h"
 
 extern void user_init();
 extern void main_loop ();

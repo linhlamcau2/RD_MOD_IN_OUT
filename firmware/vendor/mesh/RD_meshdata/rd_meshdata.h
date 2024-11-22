@@ -33,6 +33,9 @@
 #define RD_HEADER_LINKER_INPUT				(0x0415)
 #define RD_HEADER_SETTING_SENCE_INPUT		(0x0515)
 #define RD_HEADER_STATUS_ALL_INPUT			(0x0615)
+#define RD_HEADER_SET_DELTA_ADC				(0x0715)
+
+#define RD_HEADER_OUTPUT_STATUS				(0x090b)
 
 #define RD_HEADER_RELAY_STARTUP				(0x100b)
 
@@ -103,10 +106,7 @@ int cb_vd_light_onoff_get(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par);
 
 int RD_Messenger_ProcessCommingProcess_TRAIN(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par);
 
-void RD_Send_Relay_Stt(uint8_t Relay_ID, uint8_t Relay_Stt);
-
-
-void RD_Call_Scene(uint16_t Scene_ID, uint8_t Mess_ID);
+void rd_send_relay_stt(uint8_t Relay_ID, uint8_t Relay_Stt);
 
 void RD_Call_Scene(uint16_t Scene_ID, uint8_t Mess_ID);
 
@@ -118,4 +118,7 @@ void rd_handle_tx();
 void rd_call_tx2(u16 op_code, u8 *par, u16 par_len, u16 addr_dst, u16 addr_src);
 void rd_input_call_sence(uint16_t sence_id);
 
+void rd_update_adc_stt(u16 adc, u16 id_sence);
+
+void rd_rsp_state_output(u16 gw_addr);
 #endif /* RD_MESSDATA_H_ */

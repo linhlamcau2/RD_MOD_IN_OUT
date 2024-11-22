@@ -4047,8 +4047,8 @@ int mesh_par_retrieve(u8 *out, u32 *p_adr, u32 adr_base, u32 size, u32 *p_out_cu
 			continue;
 		}
 	}
-	if(adr_base == FLASH_ADR_SW_LEVEL)
-		RD_init_flash_out_handle();
+//	if(adr_base == FLASH_ADR_SW_LEVEL)
+//		RD_init_flash_out_handle();								//RD_EDIT: check_out_put_handle
     LOG_MESH_PAR_SAVE_DEBUG(0, 0, "next time record addr: 0x%x", *p_adr);
 	return err;
 	#endif
@@ -4295,7 +4295,6 @@ void mesh_common_retrieve_all()
 		mesh_common_retrieve_by_index(i);
 	}
 	
-//	RD_init_flash_out_handle();
 	#if (DUAL_VENDOR_EN)
     vendor_id_check_and_update();
 	#endif
