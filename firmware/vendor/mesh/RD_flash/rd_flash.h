@@ -29,11 +29,18 @@
 #define DELTA_PERCENT_ADC_DEFAULT		5
 #define MAX_ADC							4800
 
+enum
+{
+	LOGIC_ACTIVE = 0,
+	LOGIC_INACTIVE,
+	LOGIC_RAISING = LOGIC_ACTIVE,
+	LOGIC_STT_MAX = LOGIC_INACTIVE +1
+};
 typedef struct
 {
 	u8 mode;
-	u8 stt_sence;
-	u16 id_sence;
+//	u8 stt_sence[LOGIC_STT_MAX];
+	u16 id_sence[LOGIC_STT_MAX];
 }input_inf_t;
 
 typedef struct
@@ -47,14 +54,20 @@ typedef struct
 
 typedef struct
 {
+	u8 input;
+	u8 pow_up;
+}output_linked_t;
+
+typedef struct
+{
 	u8 Factory_Check;
 	u8 Future[3];
 	u8 Secure_RD;
-	u8 PowerUpStt;
+//	u8 PowerUpStt;
 	u16 Gw_Add;
 	input_inf_t input_setting[NUM_OUT];
 	adc_inf_t adc_setting;
-	u8 output_linked[NUM_ELEMENT];
+	output_linked_t output_linked[NUM_ELEMENT];
 } Sw_Flash_Data;
 
 void RD_Flash_Init(void);
@@ -67,7 +80,7 @@ void RD_init_flash_out_handle();
 
 u8 rd_save_mode_input(u8 idx, u8 mode);
 u8 rd_save_linked_io(u8 idx_in,u8 idx_out);
-u8 rd_save_powerup_cf(u8 pow_cf);
+u8 rd_save_powerup_cf(u8 idx_out,u8 pow_cf);
 u8 rd_save_sence_in(u8 idx_in, u8 stt_sence,u16 id_sence);
 u8 rd_save_sence_adc(u16 adc_threshold, u16 id_sence,u8 type);
 u8 rd_save_delta_adc(u8 delta);
@@ -80,7 +93,7 @@ u8 get_mode_setting_input(u8 idx);
 u8 get_ele_linked(u8 idx);
 u16 get_adc_sence();
 u16 get_adc_threshold();
-u16 get_sence_input(u8 idx);
+u16 get_sence_input(u8 idx, u8 status);
 u8 get_stt_sence(u8 idx);
 u16 get_delta_adc();
 

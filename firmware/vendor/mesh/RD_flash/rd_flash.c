@@ -3,10 +3,7 @@
 
 
 extern uint16_t RD_GATEWAYADDRESS;
-uint8_t Jump_Flash=0x00;												// val to set add Flash for Power Off data
-uint32_t Counter_Flash_Power_Eraser =0x00000000;
-
-Sw_Flash_Data Sw_Flash_Data_Val = { 0 };
+static Sw_Flash_Data Sw_Flash_Data_Val = { 0 };
 
 u8 get_mode_setting_input(u8 idx)
 {
@@ -17,21 +14,18 @@ u8 get_mode_setting_input(u8 idx)
 	return 0xff;
 }
 
-u8 get_stt_sence(u8 idx)
+u16 get_sence_input(u8 idx, u8 status)
 {
-	if(idx >= 0 && idx < NUM_OF_INPUT )
+	if(get_mode_setting_input(idx) == SYNC_PRESS_STATE)
 	{
-		if(Sw_Flash_Data_Val.input_setting[idx].id_sence != 0)
-			return Sw_Flash_Data_Val.input_setting[idx].stt_sence;
+		if(status < LOGIC_STT_MAX)
+		{
+			return Sw_Flash_Data_Val.input_setting[idx].id_sence[status];
+		}
 	}
-	return 0xff;
-}
-
-u16 get_sence_input(u8 idx)
-{
-	if(idx >= 0 && idx < NUM_OF_INPUT)
+	else if(get_mode_setting_input(idx) == PRESS_RELEASE_STATE)
 	{
-		return Sw_Flash_Data_Val.input_setting[idx].id_sence;
+		return Sw_Flash_Data_Val.input_setting[idx].id_sence[LOGIC_RAISING];
 	}
 	return 0;
 }
@@ -40,7 +34,7 @@ u8 get_ele_linked(u8 idx)
 {
 	for( u8 i=0; i<NUM_OF_ELEMENT; i++)
 	{
-		if(Sw_Flash_Data_Val.output_linked[i] == idx)
+		if(Sw_Flash_Data_Val.output_linked[i].input == idx)
 		{
 			return i;
 		}
@@ -52,7 +46,7 @@ u8 is_output_linked(u8 idx_out)
 {
 	if(idx_out < NUM_OF_ELEMENT )
 	{
-		if(Sw_Flash_Data_Val.output_linked[idx_out] == 0xff)
+		if(Sw_Flash_Data_Val.output_linked[idx_out].input == 0xff)
 			return 0;
 		return 1;
 	}
@@ -79,11 +73,11 @@ void RD_Flash_Save_DataDefault(void) {
 	memset((void *)&Sw_Flash_Data_Val, 0 , sizeof(Sw_Flash_Data_Val));
 
 	Sw_Flash_Data_Val.Gw_Add = GW_ADD_DEFAULT;
-	Sw_Flash_Data_Val.PowerUpStt = RD_PowUpStore;
 	Sw_Flash_Data_Val.adc_setting.delta = DELTA_PERCENT_ADC_DEFAULT;
 	for( u8 i=0; i<NUM_OF_ELEMENT; i++)
 	{
-		Sw_Flash_Data_Val.output_linked[i] = 0xff;
+		Sw_Flash_Data_Val.output_linked[i].input = 0xff;
+		Sw_Flash_Data_Val.output_linked[i].pow_up = RD_PowUpStore;
 	}
 	rd_flash_save();
 #if UART_ON
@@ -91,6 +85,25 @@ void RD_Flash_Save_DataDefault(void) {
 	uart_CSend("Save Data default\n");
 
 #endif
+}
+
+u8 get_power_start_output(u8 idx)
+{
+	u8 buff = 0xff;
+	if(idx < NUM_OF_ELEMENT)
+	{
+		buff = Sw_Flash_Data_Val.output_linked[idx].pow_up;
+	}
+	return buff;
+}
+
+__attribute__((unused)) void RD_init_flash_out_handle()
+{
+	for(int i =0; i< NUM_OF_ELEMENT; i++)
+	{
+		u8 state = RD_get_on_off(i,0);
+		RD_ev_log("out %d: %d\n",i,state);
+	}
 }
 
 static void RD_Flash_Data_Init(void) {
@@ -102,38 +115,33 @@ static void RD_Flash_Data_Init(void) {
 	}
 	RD_GATEWAYADDRESS = Sw_Flash_Data_Val.Gw_Add ? Sw_Flash_Data_Val.Gw_Add : 0x0001;
 
-	RD_ev_log("Sw_Flash_Data: Sec %d,Pup %d,gw: %d\n",Sw_Flash_Data_Val.Secure_RD,Sw_Flash_Data_Val.PowerUpStt,Sw_Flash_Data_Val.Gw_Add);
-	RD_ev_log("1: mode: %d,stt: %d,sence %d\n",Sw_Flash_Data_Val.input_setting[0].mode,Sw_Flash_Data_Val.input_setting[0].stt_sence,Sw_Flash_Data_Val.input_setting[0].id_sence);
-	RD_ev_log("2: mode: %d,stt: %d,sence %d\n",Sw_Flash_Data_Val.input_setting[1].mode,Sw_Flash_Data_Val.input_setting[1].stt_sence,Sw_Flash_Data_Val.input_setting[1].id_sence);
-	RD_ev_log("3: mode: %d,stt: %d,sence %d\n",Sw_Flash_Data_Val.input_setting[2].mode,Sw_Flash_Data_Val.input_setting[2].stt_sence,Sw_Flash_Data_Val.input_setting[2].id_sence);
-	RD_ev_log("4: mode: %d,stt: %d,sence %d\n",Sw_Flash_Data_Val.input_setting[3].mode,Sw_Flash_Data_Val.input_setting[3].stt_sence,Sw_Flash_Data_Val.input_setting[3].id_sence);
+	RD_ev_log("Sw_Flash_Data: Sec %d,gw: %d\n",Sw_Flash_Data_Val.Secure_RD,Sw_Flash_Data_Val.Gw_Add);
+	RD_ev_log("1: mode: %d,sence0: %d,sence1: %d\n",Sw_Flash_Data_Val.input_setting[0].mode,Sw_Flash_Data_Val.input_setting[0].id_sence[0],Sw_Flash_Data_Val.input_setting[0].id_sence[1]);
+	RD_ev_log("2: mode: %d,sence0: %d,sence1: %d\n",Sw_Flash_Data_Val.input_setting[1].mode,Sw_Flash_Data_Val.input_setting[1].id_sence[0],Sw_Flash_Data_Val.input_setting[1].id_sence[1]);
+	RD_ev_log("3: mode: %d,sence0: %d,sence1: %d\n",Sw_Flash_Data_Val.input_setting[2].mode,Sw_Flash_Data_Val.input_setting[2].id_sence[0],Sw_Flash_Data_Val.input_setting[2].id_sence[1]);
+	RD_ev_log("4: mode: %d,sence0: %d,sence1: %d\n",Sw_Flash_Data_Val.input_setting[3].mode,Sw_Flash_Data_Val.input_setting[3].id_sence[0],Sw_Flash_Data_Val.input_setting[3].id_sence[1]);
 	RD_ev_log("adc: %d %d %d %d\n",Sw_Flash_Data_Val.adc_setting.adc_threshold,Sw_Flash_Data_Val.adc_setting.id_sence,Sw_Flash_Data_Val.adc_setting.type,Sw_Flash_Data_Val.adc_setting.delta);
-	RD_ev_log("linked: 1-%d, 2-%d\n\n",Sw_Flash_Data_Val.output_linked[0],Sw_Flash_Data_Val.output_linked[1]);
+	RD_ev_log("linked-powup: 1-%d-%d, 2-%d-%d\n\n",Sw_Flash_Data_Val.output_linked[0].input,Sw_Flash_Data_Val.output_linked[0].pow_up,Sw_Flash_Data_Val.output_linked[1].input,Sw_Flash_Data_Val.output_linked[1].pow_up);
+	RD_init_flash_out_handle();
+
 	if(get_provision_state() == STATE_DEV_PROVED)
 	{
-		#if(CONFIG_POWUP_EN)
-			if(RD_PowUpStore != Sw_Flash_Data_Val.PowerUpStt)
+		for(int i=0; i<NUM_OF_ELEMENT; i++)
+		{
+			u8 pow_start = get_power_start_output(i);
+			if(pow_start == RD_PowUpOff || pow_start == RD_PowUpOn)
 			{
-				uint8_t PowUpStt = Sw_Flash_Data_Val.PowerUpStt;
-				uart_CSend("  Set PowUp \n");
-				for(int i=0; i< NUM_OF_ELEMENT; i++)
-				{
-					light_onoff_idx(i,PowUpStt, 0);
-					set_on_power_up_onoff(i, 0, PowUpStt); // save for POWer_up
-					rd_init_onoff_relay(PowUpStt,i);
-				}
+				light_onoff_idx(i,pow_start, 0);
+				set_on_power_up_onoff(i, 0, pow_start); // save for POWer_up
+				rd_init_onoff_relay(pow_start,i);
 			}
-			else
+			else if(pow_start == RD_PowUpStore)
 			{
-				for(int i =0; i< NUM_OF_ELEMENT; i++)
-				{
-					u8 state = RD_get_on_off(i,0);
-					RD_ev_log("out %d: %d\n",i,state);
-					rd_init_onoff_relay(state,i);
-				}
+				u8 state = RD_get_on_off(i,0);
+				rd_init_onoff_relay(state,i);
 			}
-			rd_rsp_state_output(Sw_Flash_Data_Val.Gw_Add);
-		#endif
+		}
+		rd_rsp_state_output(Sw_Flash_Data_Val.Gw_Add);
 	}
 	else
 	{
@@ -152,14 +160,6 @@ u8 get_state_secure()
 	return Sw_Flash_Data_Val.Secure_RD;
 }
 
-void RD_init_flash_out_handle()
-{
-	for(int i =0; i< NUM_OF_ELEMENT; i++)
-	{
-		u8 state = RD_get_on_off(i,0);
-		RD_ev_log("out %d: %d\n",i,state);
-	}
-}
 
 void RD_Flash_Init(void)
 {
@@ -196,18 +196,18 @@ u8 rd_save_linked_io(u8 idx_in,u8 idx_out)
 {
 	if(idx_in <= NUM_OF_INPUT && idx_out >0 && idx_out <= NUM_OF_ELEMENT)
 	{
-		Sw_Flash_Data_Val.output_linked[idx_out -1]= (idx_in > 0) ? (idx_in-1) : 0xff;
+		Sw_Flash_Data_Val.output_linked[idx_out -1].input= (idx_in > 0) ? (idx_in-1) : 0xff;
 		rd_flash_save();
 		return 1;
 	}
 	return 0;
 }
 
-u8 rd_save_powerup_cf(u8 pow_cf)
+u8 rd_save_powerup_cf(u8 idx_out,u8 pow_cf)
 {
-	if(pow_cf <= RD_POW_SET_MAX)
+	if(idx_out >0 && idx_out <= NUM_OF_ELEMENT && pow_cf <= RD_POW_SET_MAX && NUM_OF_ELEMENT <= 4)
 	{
-		Sw_Flash_Data_Val.PowerUpStt = pow_cf;
+		Sw_Flash_Data_Val.output_linked[idx_out-1].pow_up = pow_cf;
 		rd_flash_save();
 		return 1;
 	}
@@ -218,12 +218,24 @@ u8 rd_save_sence_in(u8 idx_in, u8 stt_sence,u16 id_sence)
 {
 	if(idx_in <= NUM_OF_INPUT && stt_sence <= MODE_MAX)
 	{
-		if(Sw_Flash_Data_Val.input_setting[idx_in -1].mode == PRESS_RELEASE_STATE  && stt_sence != MODE_PULSING)
-			return 0;
-		Sw_Flash_Data_Val.input_setting[idx_in -1].id_sence = id_sence;
-		Sw_Flash_Data_Val.input_setting[idx_in -1].stt_sence = stt_sence;
-		rd_flash_save();
-		return 1;
+		if(Sw_Flash_Data_Val.input_setting[idx_in -1].mode == PRESS_RELEASE_STATE )
+		{
+			if(stt_sence == MODE_PULSING)
+			{
+				Sw_Flash_Data_Val.input_setting[idx_in -1].id_sence[LOGIC_RAISING] = id_sence;
+				rd_flash_save();
+				return 1;
+			}
+		}
+		else if(Sw_Flash_Data_Val.input_setting[idx_in -1].mode == SYNC_PRESS_STATE)
+		{
+			if(stt_sence < LOGIC_STT_MAX)
+			{
+				Sw_Flash_Data_Val.input_setting[idx_in -1].id_sence[stt_sence] = id_sence;
+				rd_flash_save();
+				return 1;
+			}
+		}
 	}
 	return 0;
 }

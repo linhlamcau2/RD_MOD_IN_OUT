@@ -276,12 +276,14 @@ static void rd_handle_setting_link(u8 *par,int par_len, u16 gw_addr)
 
 void rd_handle_powerup_cf(u8 *par,int par_len, u16 gw_addr)
 {
-	u8 pow_cf = par[2];
-	u8 err = rd_save_powerup_cf(pow_cf);
-	RD_ev_log("powerup_cf: %d\n",pow_cf);
+	u8 idx_out = par[2];
+	u8 pow_cf = par[3];
+	u8 err = rd_save_powerup_cf(idx_out,pow_cf);
+	RD_ev_log("powerup_cf: idx: %d stt: pow: %d\n",idx_out,pow_cf);
 	if(err)
 	{
 		rd_call_tx(RD_OPCODE_SCENE_RSP, par,8,gw_addr);
+		rd_blink_led(LED_OUT + idx_out-1,2,5);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
 	}
 }
@@ -474,4 +476,19 @@ void rd_update_adc_stt(u16 adc, u16 id_sence)
 	buff[5] 	= id_sence >>8;
 
 	rd_call_tx(RD_OPCODE_INPUT_RSP,buff,8,RD_GATEWAYADDRESS);
+}
+
+u8 training_fac = 0;
+int RD_Messenger_ProcessCommingProcess_TRAIN(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par)
+{
+	uint16_t	Gw_Add_Buff = cb_par->adr_src;
+	uint16_t	Header_Buff = (par[1] << 8) | (par[0]);
+
+	if((clock_time_s() > DELAY_TRAIN_TIME) && (training_fac == 0) && (Header_Buff == 0x0101))
+	{
+		uart_CSend("start Train\n");
+		training_fac =1;
+		Train_Factory =1;
+	}
+	return 0;
 }

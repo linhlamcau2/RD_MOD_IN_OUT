@@ -35,7 +35,7 @@ u8 get_status_input(u8 idx)
 u8 rd_handle_input_press(u8 idx)
 {
 	u8 status_in = MODE_PULSING;
-	u16 sence_id = get_sence_input(idx);
+	u16 sence_id = get_sence_input(idx,0);
 
 	rd_blink_led(idx,1,2);
 	rd_update_input_stt(idx,status_in,sence_id);
@@ -54,12 +54,11 @@ u8 rd_handle_input_press(u8 idx)
 u8 rd_handle_input_asyn(u8 idx)
 {
 	u8 status = rd_input_state[idx];
-	u16 sence_id = get_sence_input(idx);
-	u8 stt_sence = get_stt_sence(idx);
+	u16 sence_id = get_sence_input(idx,!(!status));
 
 	rd_on_off_led(idx,status);
 	rd_update_input_stt(idx,status,sence_id);
-	if(sence_id && stt_sence == status)
+	if(sence_id)
 	{
 		rd_input_call_sence(sence_id);
 	}

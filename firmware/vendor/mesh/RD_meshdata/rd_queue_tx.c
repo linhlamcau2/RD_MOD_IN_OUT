@@ -55,7 +55,7 @@ static void rd_rsp()
 {
 	rd_rsp_mesh_t mess_tx;
 	int err = rd_dequeue(&rd_queue_rsp,(void *)&mess_tx);
-	if(err != -1)
+	if(err != -1 && get_provision_state() == STATE_DEV_PROVED)
 	{
 		RD_ev_log("rd_rsp opcode: %d\n",mess_tx.op_code_rsp);
 		int rsp_max = (mess_tx.op_code_rsp == SCENE_RECALL_NOACK) ? 0: RD_MAXRESPONESEND;

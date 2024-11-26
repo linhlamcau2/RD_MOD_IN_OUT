@@ -20,19 +20,12 @@
 
 #include "../../common/mi_api/libs/mesh_auth/mible_mesh_device.h"
 
-#define TIME_TRAIN_FACTORY			1200
-#define TIME_RESET_ALL				60000	//ms
-#define TRAIN_MAX_TIME				1
-#define DELAY_TRAIN_TIME			90		//s
-#define GW_ADD_DEFAULT				0x0001
-#define TIME_CYCLE_RST_TOUCH_S		3600   	// 3600s 1hour
-/*--------------------------- Time wait detect relay----------------------------------*/
-#define TIME_DETECT_ON				6000	//us
-#define TIME_DETECT_OFF				4800	//us
-/*-------------------------------------end detect time---------------------------------*/
-#define TOUCH_ACTIVE_POW			0 // 1 is origin ver
-#define TOUCH_NON_ACTIVE_POW		1
-
+#define TIME_TRAIN_FACTORY				1200
+#define TIME_RESET_ALL					60000	//ms
+#define TRAIN_MAX_TIME					1
+#define DELAY_TRAIN_TIME				30		//s
+#define GW_ADD_DEFAULT					0x0001
+#define TIME_TRAINING_TOGGLE_STATE_S	2			//s
 /*--------------------------- Gpio init ----------------------------------*/
 #define NUM_OF_ELEMENT		 		2
 #define NUM_OF_INPUT				4
@@ -89,18 +82,16 @@
 #define 	UART_ON 					1
 #define 	CLOCK_TIME_OUT_PRESS_K9B_MS	500
 #define		TIME_OUT_RESET				3000					// 4000 loop break pressResetCount
-#define		COUNT_DETECT_POWER_OFF		7						// 2ms (timer1 interrupt) * 6 = 12ms zero
-#define		NUM_CHECK_DETECH_MAX		150
-#define 	DETECT_ZERO_OFF				0
-#define		DETECT_ZERO_BY_ADC			1
-#define 	DETECT_ZERO_BY_FAILING		2
-
-#define 	METHOD_DETECT_ZERO			DETECT_ZERO_BY_FAILING //DETECT_ZERO_BY_FAILING
-#define 	TIME_HOLD_BT				(500)
-
 #define 	TSS_DEFAULT					0x0005
-
 #define 	DELTA_ADC					200
+
+
+#define LED_NUM_BLINK_SETTING_INPUT
+#define LED_NUM_BLINK_SET_LINKED
+#define LED_NUM_BLINK_UNPROV
+#define LED_NUM_BLINK_TRAINING
+#define LED_NUM_BLINK_POW_UP_OUTPUT
+
 //#define		COUNT_CHECK_ADC				10
 /*--------------------------- enum ----------------------------------*/
 typedef enum {
@@ -168,7 +159,7 @@ extern uint8_t Kick_all_Flag;
 extern Sw_Working_Stt_Str Sw_Working_Stt_Val;
 extern u32 arr_led[];
 extern uint32_t Input_Array[];
-
+extern u8 Train_Factory;
 
 /*--------------------------- Function ----------------------------------*/
 
@@ -202,5 +193,4 @@ int rd_init_onoff_relay(u8 stt,u8 id_relay);
 int rd_onoff_relay(u8 stt,u8 id_relay, int rsp);
 void rd_toggle_relay(uint8_t id_ele, int rsp);
 
-void rd_my_func();
 #endif

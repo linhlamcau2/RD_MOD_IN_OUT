@@ -37,12 +37,11 @@
 
 #define RD_HEADER_OUTPUT_STATUS				(0x090b)
 
-#define RD_HEADER_RELAY_STARTUP				(0x100b)
+#define RD_HEADER_RELAY_STARTUP				(0x0815)
 
 #define RD_OPCODE_SCENE_SEND			(0xE2)
 #define RD_OPCODE_SCENE_RSP				(0xE3)
 #define RD_OPCODE_INPUT_RSP				(0x52)
-
 #define RD_OPCODE_TRAIN_FAC						0xFE
 
 #define MANY_HEADER_EN					1
