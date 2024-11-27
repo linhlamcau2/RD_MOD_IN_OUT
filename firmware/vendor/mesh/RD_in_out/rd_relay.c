@@ -74,7 +74,10 @@ void rd_handle_relay()
 			{
 				RD_ev_log("relay queue\n");
 				gpio_write(arr_relay[i],relay_handle.stt);
-				rd_on_off_led(LED_OUT +i,relay_handle.stt);
+				if(Train_Factory < DOING_TRAIN_FAC)
+				{
+					rd_on_off_led(LED_OUT +i,relay_handle.stt);
+				}
 			}
 		}
 	}

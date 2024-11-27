@@ -186,6 +186,8 @@ u8 rd_save_mode_input(u8 idx, u8 mode)
 	if(idx > 0 && idx <= NUM_OF_INPUT  && mode <= INPUT_STATE_MAX)
 	{
 		Sw_Flash_Data_Val.input_setting[idx-1].mode = mode ;
+		Sw_Flash_Data_Val.input_setting[idx-1].id_sence[0] = 0;
+		Sw_Flash_Data_Val.input_setting[idx-1].id_sence[1] = 0;
 		rd_flash_save();
 		return 1;
 	}
@@ -196,6 +198,16 @@ u8 rd_save_linked_io(u8 idx_in,u8 idx_out)
 {
 	if(idx_in <= NUM_OF_INPUT && idx_out >0 && idx_out <= NUM_OF_ELEMENT)
 	{
+		if(idx_out>1 && idx_in >0)
+		{
+			for(u8 i=0; i<idx_out -1; i++)
+			{
+				if(Sw_Flash_Data_Val.output_linked[i].input == idx_in -1)
+				{
+					Sw_Flash_Data_Val.output_linked[i].input = 0xff;
+				}
+			}
+		}
 		Sw_Flash_Data_Val.output_linked[idx_out -1].input= (idx_in > 0) ? (idx_in-1) : 0xff;
 		rd_flash_save();
 		return 1;

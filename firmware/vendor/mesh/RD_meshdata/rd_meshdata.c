@@ -168,83 +168,6 @@ void rd_send_relay_stt(uint8_t Relay_ID, uint8_t Relay_Stt)
 //	mesh_tx_cmd2normal(G_ONOFF_STATUS, Mess_Buff, 1, Element_Add, RD_GATEWAYADDRESS, 2);
 }
 
-static void RD_GroupAuto(uint16_t groupID, mesh_cb_fun_par_t *cb_par, uint16_t OpGroup){
-	mesh_cb_fun_par_t *cb_par_g = cb_par;
-	cb_par_g->op = OpGroup;
-	cb_par_g->op_rsp = CFG_MODEL_SUB_STATUS;
-	cb_par_g->model_idx = 0;
-	uint8_t parGroup[8] = {0};
-	if(cb_par_g->adr_dst == 0xFFFF) cb_par_g->adr_dst = ele_adr_primary;
-
-	for(int i=0; i< ELE_CNT; i++)
-	{
-		if(OpGroup == CFG_MODEL_SUB_ADD){
-			parGroup[0] = (cb_par_g->adr_dst+i) & 0xff ;
-			parGroup[1] = (cb_par_g->adr_dst+i) >> 8 & 0xff;
-			parGroup[2] = groupID & 0xff;
-			parGroup[3] = groupID >>8 & 0xff;
-			parGroup[4] = 0x00;
-			parGroup[5] = 0x10;
-
-			mesh_cmd_sig_cfg_model_sub_set(parGroup, 6, cb_par_g);
-		}
-		else if(OpGroup == CFG_MODEL_SUB_DEL){
-			parGroup[0] = (cb_par_g->adr_dst+i) & 0xff ;
-			parGroup[1] = (cb_par_g->adr_dst+i) >> 8 & 0xff;
-			parGroup[2] = groupID & 0xff;
-			parGroup[3] = groupID >>8 & 0xff;
-			parGroup[4] = 0x00;
-			parGroup[5] = 0x10;
-
-			mesh_cmd_sig_cfg_model_sub_set(parGroup, 6, cb_par_g);
-		}
-		else if(OpGroup == CFG_MODEL_SUB_DEL_ALL){
-			parGroup[0] = (cb_par_g->adr_dst+i) & 0xff ;
-			parGroup[1] = (cb_par_g->adr_dst+i) >> 8 & 0xff;
-			parGroup[2] = 0x00;
-			parGroup[3] = 0x10;
-
-			mesh_cmd_sig_cfg_model_sub_set(parGroup, 4, cb_par_g);
-		}
-	}
-}
-
-static void RD_Handle_AutoCreateGr(u8 *par, uint16_t Gw_Add_Buff, mesh_cb_fun_par_t *cb_par)
-{
-	const uint16_t groupType 		= 0x001f; // switch Group
-	uint16_t id_group = 0x0000;
-	uint16_t id_group_type = 0x0000;
-
-	rd_call_tx(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff);
-//	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff, 2);
-
-	id_group = (par[2] | par[3]<<8);
-	id_group_type = id_group + groupType;
-
-	RD_GroupAuto(id_group, cb_par, CFG_MODEL_SUB_ADD);
-	RD_GroupAuto(id_group_type, cb_par, CFG_MODEL_SUB_ADD);
-
-	uart_CSend("Auto create Group default \n");
-}
-
-static void RD_Handle_AutoDeleteGr(u8 *par, uint16_t Gw_Add_Buff, mesh_cb_fun_par_t *cb_par)
-{
-	const uint16_t groupType 		= 0x001f; // switch Group
-	uint16_t id_group = 0x0000;
-	uint16_t id_group_type = 0x0000;
-
-	rd_call_tx(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff);
-//	mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, Gw_Add_Buff, 2);
-
-	id_group = (par[2] | par[3]<<8);
-	id_group_type = id_group + groupType;
-
-	RD_GroupAuto(id_group, cb_par, CFG_MODEL_SUB_DEL);
-	RD_GroupAuto(id_group_type, cb_par, CFG_MODEL_SUB_DEL);
-
-	uart_CSend("Auto delete Group default\n");
-}
-
 static void rd_handle_setting_input(u8 *par,int par_len, u16 gw_addr)
 {
 	u8 idx = par[2];
@@ -268,7 +191,7 @@ static void rd_handle_setting_link(u8 *par,int par_len, u16 gw_addr)
 	u8 err = rd_save_linked_io(idx_in,idx_out);
 	if(err)
 	{
-		rd_blink_led(idx_in-1,2,5);
+		rd_blink_led(LED_OUT + idx_out-1,2,5);
 		rd_call_tx(RD_OPCODE_SCENE_RSP,par,8,gw_addr);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
 	}
@@ -402,18 +325,11 @@ int RD_Messenger_ProcessCommingProcess_SCENE(u8 *par, int par_len, mesh_cb_fun_p
 		case RD_HEADER_OUTPUT_STATUS:
 			rd_handle_rsp_state_output(par, par_len,Gw_Add_Buff);
 			break;
-		case RD_AUTO_CREATE_GR:
-			RD_Handle_AutoCreateGr(par, Gw_Add_Buff, cb_par );
-			break;
-		case RD_AUTO_DELETE_GR:
-			RD_Handle_AutoDeleteGr(par, Gw_Add_Buff, cb_par );
-			break;
 		default:
 			sprintf(UART_Buff,"wrong header:  %x \n",Header_buff);
 			uart_CSend(UART_Buff);
 			break;
 	}
-
 	return 0;
 }
 
@@ -479,16 +395,21 @@ void rd_update_adc_stt(u16 adc, u16 id_sence)
 }
 
 u8 training_fac = 0;
+extern u32 tick_time_start_rev_mess_trainning;
 int RD_Messenger_ProcessCommingProcess_TRAIN(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par)
 {
-	uint16_t	Gw_Add_Buff = cb_par->adr_src;
 	uint16_t	Header_Buff = (par[1] << 8) | (par[0]);
 
-	if((clock_time_s() > DELAY_TRAIN_TIME) && (training_fac == 0) && (Header_Buff == 0x0101))
+	if((training_fac == 0) && (Header_Buff == 0x0101))
 	{
 		uart_CSend("start Train\n");
 		training_fac =1;
-		Train_Factory =1;
+		Train_Factory = CATCH_UP_MESS_TRAIN_FAC;
+		tick_time_start_rev_mess_trainning = clock_time_s();
+		for(u8 i=0; i<NUM_OF_RELAY; i++)
+		{
+			rd_init_onoff_relay(1,i);
+		}
 	}
 	return 0;
 }

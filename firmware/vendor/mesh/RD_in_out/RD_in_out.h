@@ -153,6 +153,16 @@ enum
 	LED_RELAY_1 = LED_OUT_1,
 	LED_RELAY_2 = LED_OUT_2,
 };
+
+enum
+{
+	MODE_NO_TRAIN =0,
+	CATCH_UP_MESS_TRAIN_FAC,
+	PRE_TRAIN_FAC = CATCH_UP_MESS_TRAIN_FAC,
+	DOING_TRAIN_FAC,
+	TRAIN_MODE_MAX = DOING_TRAIN_FAC,
+};
+
 /*--------------------------- Variable ----------------------------------*/
 
 extern uint8_t Kick_all_Flag;
@@ -169,6 +179,7 @@ void RD_mod_in_out_loop(void);
 
 void RD_mod_in_out_factory_reset();
 void RD_mod_io_gw_reset(void);
+void RD_ScanKickAll(void);
 void rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
 void rd_module_io_handle_input_onoff(void);
 

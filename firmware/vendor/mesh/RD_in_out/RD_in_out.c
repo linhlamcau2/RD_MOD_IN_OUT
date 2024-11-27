@@ -23,11 +23,11 @@ extern int mesh_tx_cmd_g_onoff_st(u8 idx, u16 ele_adr, u16 dst_adr, u8 *uuid,
 
 uint8_t Kick_all_Flag = 0;;
 Sw_Working_Stt_Str Sw_Working_Stt_Val = {0};
-u8 Train_Factory = 0;
+u8 Train_Factory = MODE_NO_TRAIN;
+u32 tick_time_start_rev_mess_trainning = 0;
 
 uint32_t Input_Array[] = ARR_INPUT_PIN;
 uint32_t Output_Array[NUM_OF_ELEMENT] = ARR_OUTPUT_PIN;
-
 
 static void RD_GPIO_Init(void) {
 	/*--------------------------- init output led ----------------------------------*/
@@ -100,27 +100,27 @@ void RD_mod_in_out_factory_reset() {
 	start_reboot();
 }
 
-typedef void (*handle_t)(void);
-u8 rd_filter_input(u8 *num_max,u8 *count, u8 *stt,handle_t handle_func)
-{
-	if(*stt)
-	{
-		*count ++;
-		if(*count == *num_max)
-		{
-			handle_func();
-		}
-		if(*count > *num_max)
-		{
-			*count = *num_max+1;
-		}
-	}
-	else
-	{
-		*count = 0;
-	}
-	return 0;
-}
+//typedef void (*handle_t)(void);
+//u8 rd_filter_input(u8 *num_max,u8 *count, u8 *stt,handle_t handle_func)
+//{
+//	if(*stt)
+//	{
+//		*count ++;
+//		if(*count == *num_max)
+//		{
+//			handle_func();
+//		}
+//		if(*count > *num_max)
+//		{
+//			*count = *num_max+1;
+//		}
+//	}
+//	else
+//	{
+//		*count = 0;
+//	}
+//	return 0;
+//}
 
 void rd_check_button_reset()
 {
@@ -144,6 +144,67 @@ void rd_check_button_reset()
 	}
 }
 
+void rd_detect_but_tranning()
+{
+	static u8 stt = 1;
+	static u16 count = 0;
+	if(gpio_read(BUTTON_RESET) == 0)
+	{
+		count ++;
+		if(count == CYCLE_READ_BT_MS)
+		{
+			RD_ev_log("press pre train\n");
+			stt = !stt;
+			for(u8 i =0; i<NUM_OF_RELAY; i++)
+			{
+				rd_init_onoff_relay(stt,i);
+			}
+		}
+		else if(count > CYCLE_READ_BT_MS)
+		{
+			count = CYCLE_READ_BT_MS+1;
+		}
+	}
+	else
+	{
+		count = 0;
+	}
+}
+
+void rd_train_factory()
+{
+	static u32 Time_Pre=0;
+	static u8 stt = 1;
+	if(Train_Factory != MODE_NO_TRAIN )
+	{
+		mesh_adv_prov_link_close();
+		if(clock_time_s() - tick_time_start_rev_mess_trainning > DELAY_TRAIN_TIME)
+		{
+			Train_Factory = DOING_TRAIN_FAC;
+			if(get_provision_state() == STATE_DEV_UNPROV)
+			{
+				if((clock_time_s() - Time_Pre) >= TIME_TRAINING_TOGGLE_STATE_S)
+				{
+					Time_Pre = clock_time_s();
+					stt = !stt;
+					for(u8 i= 0; i<NUM_OF_RELAY;i++)
+					{
+						rd_init_onoff_relay(stt,i);
+					}
+					for(u8 i=0; i< NUM_LED;i++)
+					{
+						rd_on_off_led(i,stt);
+					}
+				}
+			}
+		}
+		else
+		{
+			Train_Factory = PRE_TRAIN_FAC;
+		}
+	}
+}
+
 void RD_mod_in_out_loop(void) {
 	static uint64_t clockTick_ReadBt_ms = 0;
 	static u32 clock_time_read_adc_ms = 0;
@@ -151,14 +212,27 @@ void RD_mod_in_out_loop(void) {
 	if(clock_time_ms() - clockTick_ReadBt_ms >= CYCLE_READ_BT_MS)
 	{
 		clockTick_ReadBt_ms = clock_time_ms();
-		rd_module_io_handle_input_onoff();
-		rd_check_button_reset();
+		if(Train_Factory < DOING_TRAIN_FAC)
+		{
+			rd_module_io_handle_input_onoff();
+		}
+		if(Train_Factory == MODE_NO_TRAIN)
+		{
+			rd_check_button_reset();
+		}
+		else if(Train_Factory == PRE_TRAIN_FAC)
+		{
+			rd_detect_but_tranning();
+		}
 	}
 	if(clock_time_ms() - clock_time_read_adc_ms > CYCLE_READ_ADC_MS)
 	{
 		rd_check_adc();
 		clock_time_read_adc_ms = clock_time_ms();
 	}
+
+	rd_train_factory();
+	RD_ScanKickAll();
 	RD_Secure_CheckLoop();
 }
 
@@ -194,28 +268,3 @@ void RD_mod_io_gw_reset(void) //RD_Todo:
 	sleep_ms(200);
 }
 
-void rd_train_factory()
-{
-	static u32 Time_Pre=0;
-	static u8 stt = 1;
-	if(Train_Factory)
-	{
-		mesh_adv_prov_link_close();
-		if(get_provision_state() == STATE_DEV_UNPROV)
-		{
-			if((clock_time_s() - Time_Pre) >= TIME_TRAINING_TOGGLE_STATE_S)
-			{
-				Time_Pre = clock_time_s();
-				stt = !stt;
-				for(u8 i= 0; i<NUM_OF_RELAY;i++)
-				{
-//					rd_init_onoff_relay(stt,i);
-				}
-				for(u8 i=0; i< NUM_LED;i++)
-				{
-//					rd_on_off_led(i,stt);
-				}
-			}
-		}
-	}
-}
