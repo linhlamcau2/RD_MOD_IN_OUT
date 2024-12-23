@@ -29,6 +29,7 @@ u32 tick_time_start_rev_mess_trainning = 0;
 uint32_t Input_Array[] = ARR_INPUT_PIN;
 uint32_t Output_Array[NUM_OF_ELEMENT] = ARR_OUTPUT_PIN;
 
+static u8 provision_state_pre = 0;
 static void RD_GPIO_Init(void) {
 	/*--------------------------- init output led ----------------------------------*/
 	for (int i = 0; i < NUM_OF_ELEMENT; i++) {
@@ -55,17 +56,20 @@ static void RD_GPIO_Init(void) {
 }
 
 static void RD_in_out_check_provision(void) {
-//	if (get_provision_state() == STATE_DEV_PROVED){
+	provision_state_pre = get_provision_state();
 	if (get_provision_state() == STATE_DEV_UNPROV) {
-		rd_blink_led(0,5,5);
-		rd_blink_led(1,5,5);
-		rd_blink_led(2,5,5);
-		rd_blink_led(3,5,5);
-		rd_blink_led(4,5,5);
-		rd_blink_led(5,5,5);
+		rd_blink_led(0xff,LED_NUM_BLINK_UNPROV,TIME_500MS);
 	}
 }
 
+static void rd_check_provision_success()
+{
+	if(provision_state_pre == STATE_DEV_UNPROV && get_provision_state() == STATE_DEV_PROVED)
+	{
+		rd_blink_led(0xff,LED_NUM_BLINK_PROVISON_SUC,TIME_500MS);
+		provision_state_pre = STATE_DEV_PROVED;
+	}
+}
 void RD_mod_in_out_init(void) {
 	RD_GPIO_Init();
 
@@ -204,40 +208,43 @@ void rd_train_factory()
 		}
 	}
 }
-
+extern ota_service_t blcOta;
 void RD_mod_in_out_loop(void) {
 	static uint64_t clockTick_ReadBt_ms = 0;
 	static u32 clock_time_read_adc_ms = 0;
 	if(clock_time_ms() < clockTick_ReadBt_ms) clockTick_ReadBt_ms = clock_time_ms();
-	if(clock_time_ms() - clockTick_ReadBt_ms >= CYCLE_READ_BT_MS)
+	if(blcOta.ota_start_flag != 1)
 	{
-		clockTick_ReadBt_ms = clock_time_ms();
-		if(Train_Factory < DOING_TRAIN_FAC)
+		if(clock_time_ms() - clockTick_ReadBt_ms >= CYCLE_READ_BT_MS)
 		{
-			rd_module_io_handle_input_onoff();
+			clockTick_ReadBt_ms = clock_time_ms();
+			if(Train_Factory < DOING_TRAIN_FAC)
+			{
+				rd_module_io_handle_input_onoff();
+			}
+			if(Train_Factory == MODE_NO_TRAIN)
+			{
+				rd_check_button_reset();
+			}
+			else if(Train_Factory == PRE_TRAIN_FAC)
+			{
+				rd_detect_but_tranning();
+			}
 		}
-		if(Train_Factory == MODE_NO_TRAIN)
+		if(clock_time_ms() - clock_time_read_adc_ms > CYCLE_READ_ADC_MS)
 		{
-			rd_check_button_reset();
-		}
-		else if(Train_Factory == PRE_TRAIN_FAC)
-		{
-			rd_detect_but_tranning();
+			rd_check_adc();
+			clock_time_read_adc_ms = clock_time_ms();
 		}
 	}
-	if(clock_time_ms() - clock_time_read_adc_ms > CYCLE_READ_ADC_MS)
-	{
-		rd_check_adc();
-		clock_time_read_adc_ms = clock_time_ms();
-	}
-
-	rd_train_factory();
-	RD_ScanKickAll();
-	RD_Secure_CheckLoop();
+	rd_check_provision_success();				//check provison success
+	rd_train_factory();							//training 2
+	RD_ScanKickAll();							// kick all from app
+	RD_Secure_CheckLoop();						// check secure Rang Dong
 }
 
 
-void rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff)
+int rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff)
 {
 	uart_CSend(" SetAndRsp_Switch\n");
 	light_onoff_idx(Light_index,OnOff_Set, 0);
@@ -246,8 +253,9 @@ void rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff
 	if(GW_Add_Rsp_G_onoff != 0x0000)			// Rsp to Gw if GW_Add_Rsp_G_onoff != 0x0000;
 	{
 		uart_CSend("send on_off\n");
-		rd_send_relay_stt(Light_index + 1, OnOff_Set);
+		return rd_send_relay_stt(Light_index, OnOff_Set);
 	}
+	return 0;
 }
 
 void RD_mod_io_gw_reset(void) //RD_Todo:

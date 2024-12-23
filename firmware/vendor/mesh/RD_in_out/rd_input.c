@@ -37,7 +37,8 @@ u8 rd_handle_input_press(u8 idx)
 	u8 status_in = MODE_PULSING;
 	u16 sence_id = get_sence_input(idx,0);
 
-	rd_blink_led(idx,1,2);
+	rd_blink_led(idx,LED_NUM_RAISING_INPUT,TIME_500MS);
+
 	rd_update_input_stt(idx,status_in,sence_id);
 	if(sence_id)
 	{
@@ -66,7 +67,7 @@ u8 rd_handle_input_asyn(u8 idx)
 	u8 idx_ele = get_ele_linked(idx);
 	if(idx_ele != 0xff )
 	{
-		rd_onoff_relay(rd_input_state[idx],idx_ele,1);
+		rd_onoff_relay(rd_input_state[idx],idx_ele,1,0);
 	}
 	return 0;
 }
@@ -127,6 +128,9 @@ u8 rd_detect_level(u8 id)
 		if (input_count[id] == CYCLE_DETECT_LEVEL)
 		{
 			buttonSttBuff[id] = 1;
+			RD_ev_log("in %d change logic %d\n",id,stt);
+			rd_input_state[id] = stt;
+			return 1;
 		}
 		if (input_count[id] > CYCLE_DETECT_LEVEL )
 		{
@@ -138,12 +142,6 @@ u8 rd_detect_level(u8 id)
 	{
 		input_count[id] = 0;
 		buttonSttBuff[id] = 0;
-	}
-	if ((buttonSttBuff[id] == 1))
-	{
-		RD_ev_log("in %d change logic %d\n",id,stt);
-		rd_input_state[id] = stt;
-		return 1;
 	}
 	return 0;
 }
@@ -246,7 +244,7 @@ void rd_printf_adc()
 	{
 		app_battery_check_and_re_init_user_adc();
 		u16 adc_val = adc_sample_and_get_result();
-		RD_ev_log("rd_printf_adc: %d\n",adc_val);
+//		RD_ev_log("rd_printf_adc: %d\n",adc_val);
 		log_adc_ms = clock_time_ms();
 	}
 }
@@ -315,12 +313,12 @@ void rd_check_adc()
 	u16 adc_val = adc_sample_and_get_result();
 	u16 id_sence = get_adc_sence();
 
-	static u32 log_adc_ms = 0;
-	if(clock_time_ms() - log_adc_ms > 3000)
-	{
-		RD_ev_log("rd_printf_adc: %d\n",adc_val);
-		log_adc_ms = clock_time_ms();
-	}
+//	static u32 log_adc_ms = 0;
+//	if(clock_time_ms() - log_adc_ms > 3000)
+//	{
+//		RD_ev_log("rd_printf_adc: %d\n",adc_val);
+//		log_adc_ms = clock_time_ms();
+//	}
 	rd_read_delta_adc(adc_val,id_sence);
 
 	if(id_sence)

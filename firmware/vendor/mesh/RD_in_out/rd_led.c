@@ -28,6 +28,15 @@ void rd_call_queue_led(u16 light,u8 time_delay_100ms,u8 idx_led)
 	}
 }
 
+void rd_on_off_led_delay100ms(u8 idx_led, u8 status, u8 time_delay_100ms)
+{
+	rd_call_queue_led(status,time_delay_100ms,idx_led);
+	if(idx_led < NUM_LED)
+	{
+		led_stt[idx_led] = (status >0);
+	}
+}
+
 void rd_on_off_led(u8 idx_led, u8 status)
 {
 	rd_call_queue_led(status,0,idx_led);
@@ -42,7 +51,7 @@ u8 get_stt_led(u8 idx_led)
 	return led_stt[idx_led];
 }
 
-void rd_blink_led(u8 idx_led, u8 num,u8 time_delay_100ms)
+static void rd_blink_led2(u8 idx_led, u8 num,u8 time_delay_100ms)
 {
 	if(idx_led < NUM_LED)
 	{
@@ -51,6 +60,21 @@ void rd_blink_led(u8 idx_led, u8 num,u8 time_delay_100ms)
 		{
 			stt = !stt;
 			rd_call_queue_led(stt,time_delay_100ms,idx_led);
+		}
+	}
+}
+
+void rd_blink_led(u8 idx_led, u8 num,u8 time_delay_100ms)
+{
+	if(idx_led < NUM_LED)
+	{
+		rd_blink_led2(idx_led,num,time_delay_100ms);
+	}
+	else if(idx_led == 0xff)
+	{
+		for(u8 i= 0; i<NUM_LED; i++)
+		{
+			rd_blink_led2(i,num,time_delay_100ms);
 		}
 	}
 }

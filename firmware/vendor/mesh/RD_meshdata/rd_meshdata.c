@@ -156,18 +156,19 @@ int RD_Messenger_ProcessCommingProcess_Type(u8 *par, int par_len, mesh_cb_fun_pa
 	return 0;
 }
 
-void rd_send_relay_stt(uint8_t Relay_ID, uint8_t Relay_Stt)
+int rd_send_relay_stt(uint8_t Relay_ID, uint8_t Relay_Stt)
 {
 	uint8_t Mess_Buff[8] = {0};
 	uint16_t Element_Add = 0x0000;
 
 	Mess_Buff[1]		= Relay_Stt;
-	Element_Add 		= ele_adr_primary + (Relay_ID -1);
+	Element_Add 		= ele_adr_primary + Relay_ID;
 
 	rd_call_tx2(G_ONOFF_STATUS, Mess_Buff, 8, RD_GATEWAYADDRESS, Element_Add);
+	return 0;
 //	mesh_tx_cmd2normal(G_ONOFF_STATUS, Mess_Buff, 1, Element_Add, RD_GATEWAYADDRESS, 2);
 }
-
+extern u8 rd_read_input(u8 id);
 static void rd_handle_setting_input(u8 *par,int par_len, u16 gw_addr)
 {
 	u8 idx = par[2];
@@ -176,7 +177,7 @@ static void rd_handle_setting_input(u8 *par,int par_len, u16 gw_addr)
 	u8 err = rd_save_mode_input(idx,mode);
 	if(err)
 	{
-		rd_blink_led(idx-1,2,5);
+		rd_blink_led(idx-1,LED_NUM_BLINK_SETTING_INPUT,TIME_500MS);
 		reset_detect_input(idx-1);
 		rd_call_tx(RD_OPCODE_SCENE_RSP,par,8,gw_addr);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
@@ -191,7 +192,7 @@ static void rd_handle_setting_link(u8 *par,int par_len, u16 gw_addr)
 	u8 err = rd_save_linked_io(idx_in,idx_out);
 	if(err)
 	{
-		rd_blink_led(LED_OUT + idx_out-1,2,5);
+		rd_blink_led(LED_OUT + idx_out-1,LED_NUM_BLINK_SET_LINKED,TIME_500MS);
 		rd_call_tx(RD_OPCODE_SCENE_RSP,par,8,gw_addr);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
 	}
@@ -206,7 +207,7 @@ void rd_handle_powerup_cf(u8 *par,int par_len, u16 gw_addr)
 	if(err)
 	{
 		rd_call_tx(RD_OPCODE_SCENE_RSP, par,8,gw_addr);
-		rd_blink_led(LED_OUT + idx_out-1,2,5);
+		rd_blink_led(LED_OUT + idx_out-1,LED_NUM_BLINK_POW_UP_OUTPUT,TIME_500MS);
 //		mesh_tx_cmd2normal_primary(RD_OPCODE_SCENE_RSP, par, 8, gw_addr, RD_MAXRESPONESEND);
 	}
 }
@@ -225,7 +226,7 @@ void rd_handle_setting_sence_input(u8 *par,int par_len, u16 gw_addr)
 		err = rd_save_sence_in(idx_in,stt_sence,id_sence);
 		if(err)
 		{
-			rd_blink_led(idx_in-1,2,5);
+			rd_blink_led(idx_in-1,LED_NUM_SET_SENCE,TIME_500MS);
 		}
 	}
 	else if(type_input == TYPE_ADC_GREATER || type_input == TYPE_ADC_LOWER)
@@ -290,6 +291,19 @@ void rd_handle_rsp_set_delta_adc(u8 *par,int par_len,u16 gw_addr)
 	}
 }
 
+void rd_handle_rsp_set_stt_all_relay(u8 *par,int par_len,u16 gw_addr)
+{
+	u8 idx = par[2];
+	u8 stt = par[3];
+	if(idx == 0xff)
+	{
+		for(u8 i = 0; i<NUM_OF_ELEMENT; i++)
+		{
+			rd_onoff_relay(stt,i,1,1);
+		}
+	}
+}
+
 int RD_Messenger_ProcessCommingProcess_SCENE(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par)
 {
 	uart_CSend("co ban tin E2\n");
@@ -324,6 +338,9 @@ int RD_Messenger_ProcessCommingProcess_SCENE(u8 *par, int par_len, mesh_cb_fun_p
 			break;
 		case RD_HEADER_OUTPUT_STATUS:
 			rd_handle_rsp_state_output(par, par_len,Gw_Add_Buff);
+			break;
+		case RD_HEADER_SET_STT_ALL_RELAY:
+			rd_handle_rsp_set_stt_all_relay(par, par_len,Gw_Add_Buff);
 			break;
 		default:
 			sprintf(UART_Buff,"wrong header:  %x \n",Header_buff);

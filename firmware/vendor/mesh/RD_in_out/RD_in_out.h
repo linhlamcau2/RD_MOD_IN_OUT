@@ -86,12 +86,29 @@
 #define 	DELTA_ADC					200
 
 
-#define LED_NUM_BLINK_SETTING_INPUT
-#define LED_NUM_BLINK_SET_LINKED
-#define LED_NUM_BLINK_UNPROV
-#define LED_NUM_BLINK_TRAINING
-#define LED_NUM_BLINK_POW_UP_OUTPUT
+//#define LED_NUM_BLINK_SETTING_INPUT			3
+//#define LED_NUM_BLINK_SET_LINKED			3
+//#define LED_NUM_BLINK_UNPROV				5
+//#define LED_NUM_BLINK_POW_UP_OUTPUT			3
 
+enum
+{
+	LED_NUM_BLINK_SETTING_INPUT = 2,
+	LED_NUM_BLINK_SET_LINKED = 2,
+	LED_NUM_SET_SENCE = 2,
+	LED_NUM_BLINK_UNPROV = 5,
+	LED_NUM_BLINK_PROVISON_SUC = 3,
+	LED_NUM_BLINK_POW_UP_OUTPUT =2,
+	LED_NUM_RAISING_INPUT	= 1,
+};
+
+enum
+{
+	TIME_100MS	= 1,
+	TIME_200MS	= 2,
+	TIME_400MS	= 4,
+	TIME_500MS	= 5,
+};
 //#define		COUNT_CHECK_ADC				10
 /*--------------------------- enum ----------------------------------*/
 typedef enum {
@@ -156,7 +173,7 @@ enum
 
 enum
 {
-	MODE_NO_TRAIN =0,
+	MODE_NO_TRAIN =0,												// mode normal: no training, unprov, proved
 	CATCH_UP_MESS_TRAIN_FAC,
 	PRE_TRAIN_FAC = CATCH_UP_MESS_TRAIN_FAC,
 	DOING_TRAIN_FAC,
@@ -180,7 +197,7 @@ void RD_mod_in_out_loop(void);
 void RD_mod_in_out_factory_reset();
 void RD_mod_io_gw_reset(void);
 void RD_ScanKickAll(void);
-void rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
+int rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
 void rd_module_io_handle_input_onoff(void);
 
 void rd_set_update_in_stt();
@@ -201,7 +218,7 @@ void rd_on_off_led(u8 idx_led, u8 status);
 
 void rd_init_queue_relay();
 int rd_init_onoff_relay(u8 stt,u8 id_relay);
-int rd_onoff_relay(u8 stt,u8 id_relay, int rsp);
+int rd_onoff_relay(u8 stt,u8 id_relay, int rsp,u8 from);    //0: local, 1: app
 void rd_toggle_relay(uint8_t id_ele, int rsp);
 
 #endif

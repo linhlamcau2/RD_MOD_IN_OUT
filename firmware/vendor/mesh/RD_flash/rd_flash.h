@@ -24,7 +24,7 @@
 #define FLASH_DATA_POWER_OFF_SIZE		9
 #define SCENE_MAX 						5
 #define NUM_ELEMENT						2
-#define NUM_OUT							4
+#define NUM_IN							4
 
 #define DELTA_PERCENT_ADC_DEFAULT		5
 #define MAX_ADC							4800
@@ -65,9 +65,10 @@ typedef struct
 	u8 Secure_RD;
 //	u8 PowerUpStt;
 	u16 Gw_Add;
-	input_inf_t input_setting[NUM_OUT];
+	input_inf_t input_setting[NUM_IN];
 	adc_inf_t adc_setting;
 	output_linked_t output_linked[NUM_ELEMENT];
+//	u8 tail_check;
 } Sw_Flash_Data;
 
 void RD_Flash_Init(void);

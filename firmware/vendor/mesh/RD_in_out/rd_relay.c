@@ -29,6 +29,10 @@ void rd_call_queue_relay(u8 stt, u8 id_relay)
 static int rd_onoff_output(u8 stt,u8 id_relay, int rsp)
 {
 	rd_call_queue_relay(stt,id_relay);
+	if(Train_Factory < DOING_TRAIN_FAC)
+	{
+		rd_on_off_led(LED_OUT +id_relay,stt);
+	}
 	if(rsp == 1)
 	{
 		rd_rsp_stt_relay(id_relay,stt,RD_GATEWAYADDRESS);
@@ -41,16 +45,13 @@ int rd_init_onoff_relay(u8 stt,u8 id_relay)
 	return rd_onoff_output(stt,id_relay,0);
 }
 
-int rd_onoff_relay(u8 stt,u8 id_relay, int rsp)
+int rd_onoff_relay(u8 stt,u8 id_relay, int rsp, u8 from)
 {
 	u8 state = RD_get_on_off(id_relay,0);
-	if(stt != state)
-	{
-		if(rsp == 0 && is_output_linked(id_relay))    //RD_EDIT: check output linked
-			return 0;
-		return rd_onoff_output(stt,id_relay,rsp);
-	}
-	return 0;
+
+	if(!state == !stt || (from && is_output_linked(id_relay)))
+		return rd_send_relay_stt(id_relay,state);
+	return rd_onoff_output(stt,id_relay,rsp);
 }
 
 void rd_toggle_relay(uint8_t id_ele, int rsp)
@@ -74,10 +75,6 @@ void rd_handle_relay()
 			{
 				RD_ev_log("relay queue\n");
 				gpio_write(arr_relay[i],relay_handle.stt);
-				if(Train_Factory < DOING_TRAIN_FAC)
-				{
-					rd_on_off_led(LED_OUT +i,relay_handle.stt);
-				}
 			}
 		}
 	}

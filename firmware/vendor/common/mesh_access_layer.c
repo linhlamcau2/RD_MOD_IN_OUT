@@ -301,7 +301,7 @@ u8 * mesh_get_model_par_by_op_dst(u16 op, u16 ele_adr)
 
 int mesh_rc_data_layer_access2(u8 *ac, int len_ac, mesh_cmd_nw_t *p_nw)			//RD_EDIT: func handle Input mesh step i+2
 {
-	uart_CSend("Processing mesh_rc_data_layer_access2() i+2\n");
+//	uart_CSend("Processing mesh_rc_data_layer_access2() i+2\n");
     int err = -1;
     u16 adr_src = p_nw->src;
     u16 adr_dst = p_nw->dst;
@@ -571,7 +571,7 @@ int mesh_rc_data_layer_access2(u8 *ac, int len_ac, mesh_cmd_nw_t *p_nw)			//RD_E
 
 int mesh_rc_data_layer_access(u8 *ac, int len_ac, mesh_cmd_nw_t *p_nw)
 {
-	uart_CSend("Processing mesh_rc_data_layer_access() i+1\n");
+//	uart_CSend("Processing mesh_rc_data_layer_access() i+1\n");
 	int err = mesh_rc_data_layer_access2(ac, len_ac, p_nw);	//RD_EDIT: func handle Input mesh step i+1
 	g_msg_vd_id = g_vendor_id;
 	return err;

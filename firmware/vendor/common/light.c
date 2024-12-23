@@ -177,7 +177,7 @@ void set_on_power_up_onoff(int idx, int st_trans_type, u8 onoff)
 {
 	sw_level_save_t *p_save = P_SW_LEVEL_SAVE(idx, st_trans_type);
 	p_save->onoff = onoff;
-	RD_ev_log("mode set powerup:%d, id: %d\n",onoff,idx);
+//	RD_ev_log("mode set powerup:%d, id: %d\n",onoff,idx);
 	light_par_save(0);
 }
 
@@ -667,15 +667,15 @@ u16 get_pwm_smooth(u16 lightness, u32 step)
  */
 void light_dim_set_hw(int idx, int idx2, u16 val)
 {
-//	    if((idx < ARRAY_SIZE(light_res_hw)) && (idx2 < ARRAY_SIZE(light_res_hw[0]))){
-//			const light_res_hw_t *p_hw = &light_res_hw[idx][idx2];
-//			#if FEATURE_LOWPOWER_EN
-//			led_onoff_gpio(p_hw->gpio, 0 != val);
-//			#else
-////			RD_ev_log("handle led\"idx: %d,val: %d,p_hw->invert: %d\"\n",idx,val,p_hw->invert);
-////	        pwm_set_lum(p_hw->id, val, p_hw->invert);   //RD_EDIT: pwm_set_lum
-//	        #endif
-//	    }
+	    if((idx < ARRAY_SIZE(light_res_hw)) && (idx2 < ARRAY_SIZE(light_res_hw[0]))){
+			const light_res_hw_t *p_hw = &light_res_hw[idx][idx2];
+			#if FEATURE_LOWPOWER_EN
+			led_onoff_gpio(p_hw->gpio, 0 != val);
+			#else
+			RD_ev_log("handle led\"idx: %d,val: %d,p_hw->invert: %d\"\n",idx,val,p_hw->invert);
+	        pwm_set_lum(p_hw->id, val, p_hw->invert);   //RD_EDIT: pwm_set_lum
+	        #endif
+	    }
 }
 #endif
 
@@ -763,8 +763,8 @@ void light_res_sw_g_level_last_set(int idx, int st_trans_type)
 		set_on_power_up_last(p_save, p_trans->target);
 	}
 	RD_ev_log("RD last_set:%d, id: %d\n",p_save->onoff,idx);
-	rd_onoff_relay(p_save->onoff,idx,0);
-	light_par_save(0);
+	rd_onoff_relay(p_save->onoff,idx,1,1);
+//	light_par_save(0);
 }
 
 /**

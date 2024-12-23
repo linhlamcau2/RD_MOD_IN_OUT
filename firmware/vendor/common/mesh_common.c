@@ -3872,7 +3872,7 @@ u8 mesh_access_layer_dst_addr_valid(mesh_cmd_nw_t *p_nw )
  */
 int mesh_rc_data_layer_access_cb(u8 *params, int par_len, mesh_cb_fun_par_t *cb_par)	//RD_EDIT: func handle Input mesh step i+3
 {
-	uart_CSend("Processing mesh_rc_data_layer_access_cb() i+3\n");
+//	uart_CSend("Processing mesh_rc_data_layer_access_cb() i+3\n");
     __UNUSED int log_len = par_len;
     #if HCI_LOG_FW_EN
     if(log_len > 10){

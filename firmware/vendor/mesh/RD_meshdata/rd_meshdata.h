@@ -36,6 +36,7 @@
 #define RD_HEADER_SET_DELTA_ADC				(0x0715)
 
 #define RD_HEADER_OUTPUT_STATUS				(0x090b)
+#define RD_HEADER_SET_STT_ALL_RELAY			(0x000b)
 
 #define RD_HEADER_RELAY_STARTUP				(0x0815)
 
@@ -105,7 +106,7 @@ int cb_vd_light_onoff_get(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par);
 
 int RD_Messenger_ProcessCommingProcess_TRAIN(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par);
 
-void rd_send_relay_stt(uint8_t Relay_ID, uint8_t Relay_Stt);
+int rd_send_relay_stt(uint8_t Relay_ID, uint8_t Relay_Stt);
 
 void RD_Call_Scene(uint16_t Scene_ID, uint8_t Mess_ID);
 
