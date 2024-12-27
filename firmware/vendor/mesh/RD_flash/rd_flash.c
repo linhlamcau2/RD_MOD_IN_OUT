@@ -280,6 +280,11 @@ u8 rd_save_sence_in(u8 idx_in, u8 stt_sence,u16 id_sence)
 			if(stt_sence < LOGIC_STT_MAX)
 			{
 				Sw_Flash_Data_Val.input_setting[idx_in -1].id_sence[stt_sence] = id_sence;
+				u8 stt = rd_read_input(idx_in -1);
+				if(stt == stt_sence)
+				{
+					rd_input_call_sence(id_sence);
+				}
 				rd_flash_save();
 				return 1;
 			}
@@ -288,18 +293,9 @@ u8 rd_save_sence_in(u8 idx_in, u8 stt_sence,u16 id_sence)
 	return 0;
 }
 
-u8 rd_save_sence_adc(u16 adc_threshold, u16 id_sence,u8 type)
-{
-	Sw_Flash_Data_Val.adc_setting.adc_threshold = adc_threshold;
-	Sw_Flash_Data_Val.adc_setting.id_sence = id_sence;
-	Sw_Flash_Data_Val.adc_setting.type = type;
-	rd_flash_save();
-	return 1;
-}
-
 u8 rd_save_delta_adc(u8 delta)
 {
-	if(delta >4 && delta <100)
+	if(delta >= DELTA_PERCENT_ADC_MIN && delta <= DELTA_PERCENT_ADC_MAX)
 	{
 		Sw_Flash_Data_Val.adc_setting.delta = delta;
 		rd_flash_save();
@@ -321,4 +317,23 @@ u8 rd_check_state_adc(u16 adc_value)
 		return (adc_value < Sw_Flash_Data_Val.adc_setting.adc_threshold);
 	return 0;
 }
+
+u8 rd_save_sence_adc(u16 adc_threshold, u16 id_sence,u8 type)
+{
+	Sw_Flash_Data_Val.adc_setting.adc_threshold = adc_threshold;
+	Sw_Flash_Data_Val.adc_setting.id_sence = id_sence;
+	Sw_Flash_Data_Val.adc_setting.type = type;
+
+	app_battery_check_and_re_init_user_adc();
+	u16 adc_val = adc_sample_and_get_result();
+
+	if(rd_check_state_adc(adc_val))
+	{
+		rd_input_call_sence(id_sence);
+	}
+
+	rd_flash_save();
+	return 1;
+}
+
 

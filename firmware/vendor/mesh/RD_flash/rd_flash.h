@@ -26,7 +26,9 @@
 #define NUM_ELEMENT						2
 #define NUM_IN							4
 
-#define DELTA_PERCENT_ADC_DEFAULT		5
+#define DELTA_PERCENT_ADC_DEFAULT		10
+#define DELTA_PERCENT_ADC_MIN			1
+#define DELTA_PERCENT_ADC_MAX			100
 #define MAX_ADC							4800
 
 enum

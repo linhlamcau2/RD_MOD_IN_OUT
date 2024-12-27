@@ -236,11 +236,11 @@ void RD_mod_in_out_loop(void) {
 			rd_check_adc();
 			clock_time_read_adc_ms = clock_time_ms();
 		}
+		RD_ScanKickAll();							// kick all from app
+		RD_Secure_CheckLoop();						// check secure Rang Dong
 	}
 	rd_check_provision_success();				//check provison success
 	rd_train_factory();							//training 2
-	RD_ScanKickAll();							// kick all from app
-	RD_Secure_CheckLoop();						// check secure Rang Dong
 }
 
 

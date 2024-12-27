@@ -546,7 +546,8 @@ void light_par_save_proc()
 	// save proc
 	if(tick_light_save && clock_time_exceed(tick_light_save, 3*1000*1000)){
 		tick_light_save = 0;
-		if(!is_activated_factory_test_mode()){
+//		if(!is_activated_factory_test_mode()){
+		if(1){
 		    mesh_common_store(FLASH_ADR_SW_LEVEL);
 		    RD_init_flash_out_handle();
 		}

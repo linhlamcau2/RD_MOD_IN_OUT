@@ -254,6 +254,8 @@ void rd_read_delta_adc(u16 adc_val,u16 id_sence)
 	static u32 last_tick_send = 0;  //TIME_MAX_SEND_ADC_MINUTE
 	static u16 val = 0;
 	static u8 count[2] = {0};
+
+	adc_val = (adc_val > 4800) ? 4800: adc_val ;
 	u8 idx_count = (adc_val > val) ? 1: 0;
 	u16 delta = (adc_val > val) ? (adc_val - val) : (val - adc_val);
 	count[!idx_count] = 0;
@@ -280,7 +282,7 @@ void rd_read_delta_adc(u16 adc_val,u16 id_sence)
 	}
 	if(clock_time_ms() - last_tick_send > TIME_MAX_SEND_ADC_MINUTE * 60 * 1000)
 	{
-		rd_update_adc_stt(val,id_sence);
+		rd_update_adc_stt(adc_val,id_sence);
 		last_tick_send = clock_time_ms();
 	}
 }
