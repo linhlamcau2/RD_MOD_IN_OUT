@@ -23,6 +23,8 @@
 #define CYCLE_ACTIVE_BUTTON			10 // num of read CYCLE_ACTIVE_BUTTON times active iss press
 #define CYCLE_DETECT_LEVEL			20
 #define CYCLE_READ_BT_MS			5 // time of 1 cycle check read bt
+
+#define CYCLE_HOLD_BUTTON_CALIB			1000
 #define CYCLE_HOLD_BUTTON			1000
 #define CYCLE_READ_ADC_MS			200
 #define COUNT_CHECK_ADC				5

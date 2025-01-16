@@ -100,6 +100,8 @@ enum
 	LED_NUM_BLINK_PROVISON_SUC = 3,
 	LED_NUM_BLINK_POW_UP_OUTPUT =2,
 	LED_NUM_RAISING_INPUT	= 1,
+	LED_NUM_ADC_CALIB_SUCCESS = 3,
+	LED_NUM_START_CALIB_ADC = 3,
 };
 
 enum
@@ -180,6 +182,11 @@ enum
 	TRAIN_MODE_MAX = DOING_TRAIN_FAC,
 };
 
+enum
+{
+	MODE_NORMAL = 0,
+	MODE_CALIB
+};
 /*--------------------------- Variable ----------------------------------*/
 
 extern uint8_t Kick_all_Flag;
@@ -210,6 +217,7 @@ void reset_detect_input(u8 id);
 void reset_all_detect_input(u8 id);
 
 void rd_check_adc();
+void rd_init_adc();
 
 void rd_init_queue_led();
 void rd_blink_led(u8 idx_led, u8 num,u8 time_delay_100ms);

@@ -4,11 +4,12 @@ static u8 input_count[NUM_OF_INPUT] = {0};
 static u8 rd_input_state[NUM_OF_INPUT] = {0};
 static uint8_t buttonSttBuff[NUM_OF_INPUT] = { 0 };
 
-static u16 adc_value = 0xffff;
+static u16 adc_value = 0;
+static u16 val = 0;
 static int need_update = 0;
 u32 last_time_update_input_stt = 0;
 
-
+u8 rd_mode_adc = MODE_NORMAL;
 typedef u8 (*handle_detect_input_t)(u8 id);
 typedef u8 (*handle_input_t)(u8 id);
 
@@ -252,10 +253,9 @@ void rd_printf_adc()
 void rd_read_delta_adc(u16 adc_val,u16 id_sence)
 {
 	static u32 last_tick_send = 0;  //TIME_MAX_SEND_ADC_MINUTE
-	static u16 val = 0;
 	static u8 count[2] = {0};
 
-	adc_val = (adc_val > 4800) ? 4800: adc_val ;
+	adc_val = (adc_val > ADC_MAX_MV) ? ADC_MAX_MV: adc_val ;
 	u8 idx_count = (adc_val > val) ? 1: 0;
 	u16 delta = (adc_val > val) ? (adc_val - val) : (val - adc_val);
 	count[!idx_count] = 0;
@@ -309,24 +309,72 @@ void rd_check_condition_adc(u16 adc_val, u16 id_sence)
 	}
 }
 
+
+void rd_handle_adc_calib(u16 adc_val)
+{
+	static u8 count = 0;
+	static u32 sum = 0;
+	u16 adc_avg = 0;
+
+	sum += adc_val;
+	count ++;
+
+	if(count == 25)
+	{
+		adc_avg = sum / count;
+		count = 0;
+		sum = 0;
+		u8 err = rd_save_adc_calib(adc_avg);
+		if(err)
+		{
+			RD_ev_log("rd calib sucess : %d\n",adc_avg);
+			rd_blink_led(0xff,LED_NUM_ADC_CALIB_SUCCESS,TIME_400MS);
+		}
+		rd_mode_adc = MODE_NORMAL;
+	}
+}
+
 void rd_check_adc()
 {
 	app_battery_check_and_re_init_user_adc();
 	u16 adc_val = adc_sample_and_get_result();
-	u16 id_sence = get_adc_sence();
 
-//	static u32 log_adc_ms = 0;
-//	if(clock_time_ms() - log_adc_ms > 3000)
-//	{
-//		RD_ev_log("rd_printf_adc: %d\n",adc_val);
-//		log_adc_ms = clock_time_ms();
-//	}
-	rd_read_delta_adc(adc_val,id_sence);
-
-	if(id_sence)
+	if(rd_mode_adc == MODE_NORMAL )
 	{
-		rd_check_condition_adc(adc_val,id_sence);
+		u16 id_sence = get_adc_sence();
+
+		u16 adc_calib = get_adc_calib();
+		u16 adc_mv = adc_val * ADC_MAX_MV / adc_calib;
+		static u32 log_adc_ms = 0;
+		if(clock_time_ms() - log_adc_ms > 3000)
+		{
+			RD_ev_log("rd_printf_adc: %d\n",adc_mv);
+			log_adc_ms = clock_time_ms();
+		}
+
+		rd_read_delta_adc(adc_mv,id_sence);
+
+		if(id_sence)
+		{
+			rd_check_condition_adc(adc_mv,id_sence);
+		}
+	}
+	else if (rd_mode_adc == MODE_CALIB)
+	{
+		rd_handle_adc_calib(adc_val);
 	}
 }
 
+void rd_init_adc()
+{
+	app_battery_check_and_re_init_user_adc();
+	u16 adc_val = adc_sample_and_get_result();
+	u16 adc_calib = get_adc_calib();
+
+	adc_value = adc_val * ADC_MAX_MV / adc_calib;
+	adc_val = (adc_val > ADC_MAX_MV) ? ADC_MAX_MV: adc_val ;
+	val = adc_value;
+	u16 id_sence = get_adc_sence();
+	rd_update_adc_stt(adc_value,id_sence);
+}
 

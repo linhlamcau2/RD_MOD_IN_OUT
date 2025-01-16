@@ -3040,8 +3040,9 @@ u8 mesh_adv_txrx_self_en = 0; //must
  * for op codes with app key, only op codes of these models will be handled in factory test mode.
  */
 //RD_EDIT: factory_test_model_array
+#include "../mesh/RD_meshdata/rd_meshdata.h"
 const u16 factory_test_model_array[] = {
-    SIG_MD_G_ONOFF_S, SIG_MD_LIGHTNESS_S, SIG_MD_LIGHT_CTL_S, SIG_MD_LIGHT_CTL_TEMP_S, SIG_MD_LIGHT_HSL_S, SIG_MD_LIGHT_XYL_S,
+    SIG_MD_G_ONOFF_S, SIG_MD_LIGHTNESS_S, SIG_MD_LIGHT_CTL_S, SIG_MD_LIGHT_CTL_TEMP_S, SIG_MD_LIGHT_HSL_S, SIG_MD_LIGHT_XYL_S, RD_OPCODE_TYPE_SEND, RD_OPCODE_TYPE_RSP,
 #if LIGHT_CONTROL_SERVER_LOCATE_EXCLUSIVE_ELEMENT_EN
 	SIG_MD_LIGHT_LC_S,
 #endif
@@ -3054,12 +3055,12 @@ const u16 factory_test_model_array[] = {
  * for op codes belong to SIG_MD_CFG_SERVER model, only op codes of these will be handled in factory test mode.
  */
 
-const u16 factory_test_cfg_op_array[] = {COMPOSITION_DATA_GET, NODE_RESET}; //RD_EDIT: factory test mode OPCODE able
-//const u16 factory_test_cfg_op_array[] = {
-//		COMPOSITION_DATA_GET, NODE_RESET,
-//		SENSOR_STATUS,
-//		RD_OPCODE_TYPE_SEND, RD_OPCODE_TYPE_RSP
-//		};
+//const u16 factory_test_cfg_op_array[] = {COMPOSITION_DATA_GET, NODE_RESET}; //RD_EDIT: factory test mode OPCODE able
+const u16 factory_test_cfg_op_array[] = {
+		COMPOSITION_DATA_GET, NODE_RESET,
+		SENSOR_STATUS,
+		RD_OPCODE_TYPE_SEND, RD_OPCODE_TYPE_RSP
+		};
 
 //const u16 factory_test_cfg_op_array[] = {COMPOSITION_DATA_GET, NODE_RESET};
 

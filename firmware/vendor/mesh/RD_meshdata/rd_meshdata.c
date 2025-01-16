@@ -413,6 +413,7 @@ void rd_update_adc_stt(u16 adc, u16 id_sence)
 
 u8 training_fac = 0;
 extern u32 tick_time_start_rev_mess_trainning;
+extern u8 rd_mode_adc;
 int RD_Messenger_ProcessCommingProcess_TRAIN(u8 *par, int par_len, mesh_cb_fun_par_t *cb_par)
 {
 	uint16_t	Header_Buff = (par[1] << 8) | (par[0]);
@@ -427,6 +428,12 @@ int RD_Messenger_ProcessCommingProcess_TRAIN(u8 *par, int par_len, mesh_cb_fun_p
 		{
 			rd_init_onoff_relay(1,i);
 		}
+	}
+	else if(Header_Buff == 0x0102 && rd_mode_adc == MODE_NORMAL)
+	{
+		uart_CSend("start calib adc\n");
+		rd_mode_adc = MODE_CALIB;
+		rd_blink_led(0xff,LED_NUM_START_CALIB_ADC,TIME_400MS);
 	}
 	return 0;
 }

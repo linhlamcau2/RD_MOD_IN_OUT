@@ -29,8 +29,12 @@
 #define DELTA_PERCENT_ADC_DEFAULT		10
 #define DELTA_PERCENT_ADC_MIN			1
 #define DELTA_PERCENT_ADC_MAX			100
-#define MAX_ADC							4800
+#define MAX_ADC							10000
 
+#define ADC_DEFAULT_MV					2632
+#define ADC_CALIB_MIN					2620
+#define ADC_CALIB_MAX					2680
+#define ADC_MAX_MV						10000
 enum
 {
 	LOGIC_ACTIVE = 0,
@@ -52,6 +56,7 @@ typedef struct
 	u8 type;
 	u8 delta;
 	u8 band;
+	u16 adc_calib_mv;
 }adc_inf_t;
 
 typedef struct
@@ -87,6 +92,7 @@ u8 rd_save_powerup_cf(u8 idx_out,u8 pow_cf);
 u8 rd_save_sence_in(u8 idx_in, u8 stt_sence,u16 id_sence);
 u8 rd_save_sence_adc(u16 adc_threshold, u16 id_sence,u8 type);
 u8 rd_save_delta_adc(u8 delta);
+u8 rd_save_adc_calib(u16 adc_calib_mv);
 
 u8 rd_check_state_adc(u16 adc_value);
 
@@ -99,6 +105,7 @@ u16 get_adc_threshold();
 u16 get_sence_input(u8 idx, u8 status);
 u8 get_stt_sence(u8 idx);
 u16 get_delta_adc();
+u16 get_adc_calib();
 
 #endif
 

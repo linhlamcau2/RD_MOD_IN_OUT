@@ -26,6 +26,7 @@ Sw_Working_Stt_Str Sw_Working_Stt_Val = {0};
 u8 Train_Factory = MODE_NO_TRAIN;
 u32 tick_time_start_rev_mess_trainning = 0;
 
+u8 rd_ota_process = 0;
 uint32_t Input_Array[] = ARR_INPUT_PIN;
 uint32_t Output_Array[NUM_OF_ELEMENT] = ARR_OUTPUT_PIN;
 
@@ -81,6 +82,7 @@ void RD_mod_in_out_init(void) {
 	RD_Flash_Init();
 
 
+	rd_init_adc();
 	RD_Secure_CheckInit();
 }
 
@@ -104,40 +106,28 @@ void RD_mod_in_out_factory_reset() {
 	start_reboot();
 }
 
-//typedef void (*handle_t)(void);
-//u8 rd_filter_input(u8 *num_max,u8 *count, u8 *stt,handle_t handle_func)
-//{
-//	if(*stt)
-//	{
-//		*count ++;
-//		if(*count == *num_max)
-//		{
-//			handle_func();
-//		}
-//		if(*count > *num_max)
-//		{
-//			*count = *num_max+1;
-//		}
-//	}
-//	else
-//	{
-//		*count = 0;
-//	}
-//	return 0;
-//}
-
+extern u8 rd_mode_adc;
 void rd_check_button_reset()
 {
 	static u16 count = 0;
 	if(gpio_read(BUTTON_RESET) == 0)
 	{
 		count ++;
+//		if(count == CYCLE_HOLD_BUTTON_CALIB)
+//		{
+//			if(rd_mode_adc == MODE_NORMAL)
+//			{
+//				uart_CSend("start calib adc\n");
+//				rd_mode_adc = MODE_CALIB;
+//				rd_blink_led(0xff,LED_NUM_START_CALIB_ADC,TIME_400MS);
+//			}
+//		}
 		if(count == CYCLE_HOLD_BUTTON)
 		{
 			RD_ev_log("reset mod inout\n");
 			RD_mod_in_out_factory_reset();
 		}
-		if(count > CYCLE_HOLD_BUTTON)
+		else if(count > CYCLE_HOLD_BUTTON)
 		{
 			count = CYCLE_HOLD_BUTTON+1;
 		}
@@ -213,7 +203,7 @@ void RD_mod_in_out_loop(void) {
 	static uint64_t clockTick_ReadBt_ms = 0;
 	static u32 clock_time_read_adc_ms = 0;
 	if(clock_time_ms() < clockTick_ReadBt_ms) clockTick_ReadBt_ms = clock_time_ms();
-	if(blcOta.ota_start_flag != 1)
+	if(rd_ota_process != 1)
 	{
 		if(clock_time_ms() - clockTick_ReadBt_ms >= CYCLE_READ_BT_MS)
 		{
@@ -238,9 +228,9 @@ void RD_mod_in_out_loop(void) {
 		}
 		RD_ScanKickAll();							// kick all from app
 		RD_Secure_CheckLoop();						// check secure Rang Dong
+		rd_check_provision_success();				//check provison success
+		rd_train_factory();							//training 2
 	}
-	rd_check_provision_success();				//check provison success
-	rd_train_factory();							//training 2
 }
 
 

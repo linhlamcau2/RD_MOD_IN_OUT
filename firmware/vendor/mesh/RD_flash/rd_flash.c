@@ -71,9 +71,16 @@ static void rd_flash_save()
 }
 
 void RD_Flash_Save_DataDefault(void) {
+	u16 adc_calib = Sw_Flash_Data_Val.adc_setting.adc_calib_mv;
 	memset((void *)&Sw_Flash_Data_Val, 0 , sizeof(Sw_Flash_Data_Val));
 
 	Sw_Flash_Data_Val.Gw_Add = GW_ADD_DEFAULT;
+	if(adc_calib > ADC_CALIB_MIN && adc_calib < ADC_CALIB_MAX)
+	{
+		Sw_Flash_Data_Val.adc_setting.adc_calib_mv = adc_calib;
+	}
+	else
+		Sw_Flash_Data_Val.adc_setting.adc_calib_mv = ADC_DEFAULT_MV;
 	Sw_Flash_Data_Val.adc_setting.delta = DELTA_PERCENT_ADC_DEFAULT;
 	for( u8 i=0; i<NUM_OF_ELEMENT; i++)
 	{
@@ -121,7 +128,7 @@ static void RD_Flash_Data_Init(void) {
 	RD_ev_log("2: mode: %d,sence0: %d,sence1: %d\n",Sw_Flash_Data_Val.input_setting[1].mode,Sw_Flash_Data_Val.input_setting[1].id_sence[0],Sw_Flash_Data_Val.input_setting[1].id_sence[1]);
 	RD_ev_log("3: mode: %d,sence0: %d,sence1: %d\n",Sw_Flash_Data_Val.input_setting[2].mode,Sw_Flash_Data_Val.input_setting[2].id_sence[0],Sw_Flash_Data_Val.input_setting[2].id_sence[1]);
 	RD_ev_log("4: mode: %d,sence0: %d,sence1: %d\n",Sw_Flash_Data_Val.input_setting[3].mode,Sw_Flash_Data_Val.input_setting[3].id_sence[0],Sw_Flash_Data_Val.input_setting[3].id_sence[1]);
-	RD_ev_log("adc: %d %d %d %d\n",Sw_Flash_Data_Val.adc_setting.adc_threshold,Sw_Flash_Data_Val.adc_setting.id_sence,Sw_Flash_Data_Val.adc_setting.type,Sw_Flash_Data_Val.adc_setting.delta);
+	RD_ev_log("adc: %d %d %d %d %d\n",Sw_Flash_Data_Val.adc_setting.adc_threshold,Sw_Flash_Data_Val.adc_setting.id_sence,Sw_Flash_Data_Val.adc_setting.type,Sw_Flash_Data_Val.adc_setting.delta,Sw_Flash_Data_Val.adc_setting.adc_calib_mv);
 	RD_ev_log("linked-powup: 1-%d-%d, 2-%d-%d\n\n",Sw_Flash_Data_Val.output_linked[0].input,Sw_Flash_Data_Val.output_linked[0].pow_up,Sw_Flash_Data_Val.output_linked[1].input,Sw_Flash_Data_Val.output_linked[1].pow_up);
 	RD_init_flash_out_handle();
 
@@ -304,11 +311,25 @@ u8 rd_save_delta_adc(u8 delta)
 	return 0;
 }
 
+u8 rd_save_adc_calib(u16 adc_calib_mv)
+{
+	if(adc_calib_mv > ADC_CALIB_MIN && adc_calib_mv <ADC_CALIB_MAX)
+	{
+		Sw_Flash_Data_Val.adc_setting.adc_calib_mv = adc_calib_mv;
+		rd_flash_save();
+		return 1;
+	}
+	return 0;
+}
 u16 get_delta_adc()
 {
 	return Sw_Flash_Data_Val.adc_setting.delta * MAX_ADC / 100;
 }
 
+u16 get_adc_calib()
+{
+	return Sw_Flash_Data_Val.adc_setting.adc_calib_mv;
+}
 u8 rd_check_state_adc(u16 adc_value)
 {
 	if(Sw_Flash_Data_Val.adc_setting.type == TYPE_ADC_GREATER)

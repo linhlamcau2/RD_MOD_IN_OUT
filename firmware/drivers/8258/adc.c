@@ -95,8 +95,6 @@ void adc_set_ref_voltage(ADC_ChTypeDef ch_n, ADC_RefVolTypeDef v_ref)
 		analog_write( areg_ain_scale  , (analog_read( areg_ain_scale  )&(0xC0)) | 0x15 );
 		adc_vref_cfg.adc_vref=adc_ref_vol[v_ref];
 	}
-
-
 }
 
 /**
@@ -458,10 +456,11 @@ unsigned int adc_sample_and_get_result(void)
 
 	adc_vol_mv  = (adc_result * adc_pre_scale*adc_vref_cfg.adc_vref)>>13;
 
+//	adc_result = adc_result  * 2700 / 2620;
 
-
-//	return adc_vol_mv;
-	return adc_result;
+	return adc_vol_mv;
+//	return adc_result;
+//	return adc_result * 2700 / 2648;
 }
 
 /**

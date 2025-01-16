@@ -45,6 +45,8 @@
 #include "../mesh_provision/app.h"
 #endif
 
+
+extern u8 rd_ota_process;
 _attribute_data_retention_ int ota_adr_index = -1;
 _attribute_data_retention_ u32 blt_ota_start_tick;
 _attribute_data_retention_ u32 blt_ota_timeout_us = 30000000;  //default 30 second
@@ -269,6 +271,7 @@ int otaWrite(void * p)
 		if(ota_reboot_flag)
 		#endif
 		{
+			rd_ota_process = 1;
 			blcOta.ota_start_flag = 1;   //set flag
 			blt_ota_start_tick = clock_time()|1;  //mark time
 			if(otaStartCb){
