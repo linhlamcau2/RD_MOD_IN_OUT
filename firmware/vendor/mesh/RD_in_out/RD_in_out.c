@@ -21,6 +21,8 @@ extern int mesh_tx_cmd_g_onoff_st(u8 idx, u16 ele_adr, u16 dst_adr, u8 *uuid,
 
 #include "../rd_queue.h"
 
+u8 rd_get_type = 0;
+u32 rd_tick_get_type_ms = 0;
 uint8_t Kick_all_Flag = 0;;
 Sw_Working_Stt_Str Sw_Working_Stt_Val = {0};
 u8 Train_Factory = MODE_NO_TRAIN;
@@ -63,12 +65,24 @@ static void RD_in_out_check_provision(void) {
 	}
 }
 
+u8 count_pro_suc = 0;
 static void rd_check_provision_success()
 {
 	if(provision_state_pre == STATE_DEV_UNPROV && get_provision_state() == STATE_DEV_PROVED)
 	{
 		rd_blink_led(0xff,LED_NUM_BLINK_PROVISON_SUC,TIME_500MS);
 		provision_state_pre = STATE_DEV_PROVED;
+		count_pro_suc = 1;
+	}
+	if(count_pro_suc && rd_get_type)
+	{
+		if(clock_time_ms() - rd_tick_get_type_ms > 10 * 1000)
+		{
+			rd_init_input();
+			rd_init_adc();
+			rd_get_type = 0;
+			count_pro_suc = 0;
+		}
 	}
 }
 void RD_mod_in_out_init(void) {
@@ -83,7 +97,9 @@ void RD_mod_in_out_init(void) {
 
 
 	rd_init_adc();
+#if(SECURE_ON ==1)
 	RD_Secure_CheckInit();
+#endif
 }
 
 
@@ -227,8 +243,11 @@ void RD_mod_in_out_loop(void) {
 			clock_time_read_adc_ms = clock_time_ms();
 		}
 		RD_ScanKickAll();							// kick all from app
+#if(SECURE_ON ==1)
 		RD_Secure_CheckLoop();						// check secure Rang Dong
+#endif
 		rd_check_provision_success();				//check provison success
+
 		rd_train_factory();							//training 2
 	}
 }

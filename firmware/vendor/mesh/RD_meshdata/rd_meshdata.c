@@ -39,6 +39,9 @@ static void RD_Mess_RspSecure(uint8_t Secure_Rsp_Stt, uint16_t Gw_Add_Buff)
  * @param par
  * @param Gw_Add_Buff
  */
+
+extern u8 rd_get_type;
+extern u32 rd_tick_get_type_ms ;
 static void RD_Handle_MessType(uint8_t par[8], uint16_t Gw_Add_Buff)
 {
 	uint8_t Secure_return =0;
@@ -73,6 +76,9 @@ static void RD_Handle_MessType(uint8_t par[8], uint16_t Gw_Add_Buff)
 	RD_Flash_Save_Secure(RD_EN);			// save secure pass to flash memory
 	RD_Mess_RspSecure(RD_EN, Gw_Add_Buff);
 	#endif
+
+	rd_get_type = 1;
+	rd_tick_get_type_ms = clock_time_ms();
 }
 
 static void RD_Handle_SaveGw(uint8_t par[8], uint16_t Gw_Add_Buff)

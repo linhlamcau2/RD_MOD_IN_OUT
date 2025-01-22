@@ -147,7 +147,22 @@ u8 rd_detect_level(u8 id)
 	return 0;
 }
 
+void rd_init_input()
+{
+	for(u8 idx=0; idx< NUM_OF_INPUT; idx++)
+	{
+		if(get_mode_setting_input(idx) == SYNC_PRESS_STATE)
+		{
+			u8 status = rd_read_input(idx);
+			rd_input_state[idx] = status;
 
+			u16 sence_id = get_sence_input(idx,!(!status));
+
+			rd_on_off_led(idx,status);
+			rd_update_input_stt(idx,status,sence_id);
+		}
+	}
+}
 
 static input_ctr_t in_handle_arr[] ={
 		{SYNC_PRESS_STATE, rd_detect_level,rd_handle_input_asyn},
@@ -209,29 +224,6 @@ void RD_ScanKickAll(void)
 	}
 }
 
-
-void rd_check_update_in_stt()
-{
-	if(need_update == 1)
-	{
-		RD_ev_log("update stt\n");
-//		rd_update_input_stt(rd_input_state,adc_value,NUM_OF_INPUT);
-		last_time_update_input_stt = clock_time_ms();
-		need_update = 0;
-	}
-	if(need_update > 0)
-	{
-		if(clock_time_ms() - last_time_update_input_stt > 500)
-		{
-			need_update = 0;
-		}
-	}
-}
-
-void rd_set_update_in_stt()
-{
-	need_update ++;
-}
 
 void rd_read_adc()
 {

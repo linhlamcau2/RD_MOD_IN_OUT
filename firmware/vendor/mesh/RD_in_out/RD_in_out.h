@@ -199,16 +199,13 @@ extern u8 Train_Factory;
 
 void RD_mod_in_out_init(void);
 void RD_mod_in_out_loop(void);
-
+void rd_init_input();
 
 void RD_mod_in_out_factory_reset();
 void RD_mod_io_gw_reset(void);
 void RD_ScanKickAll(void);
 int rd_rsp_stt_relay(int Light_index, u8 OnOff_Set, uint16_t GW_Add_Rsp_G_onoff);
 void rd_module_io_handle_input_onoff(void);
-
-void rd_set_update_in_stt();
-void rd_check_update_in_stt();
 
 u16 get_adc_value();
 u8 get_status_input(u8 idx);

@@ -134,33 +134,39 @@ static void RD_Flash_Data_Init(void) {
 
 	if(get_provision_state() == STATE_DEV_PROVED)
 	{
+		rd_init_input();
+
 		for(int i=0; i<NUM_OF_ELEMENT; i++)
 		{
 			u8 idx_in_link = Sw_Flash_Data_Val.output_linked[i].input;
-			if(idx_in_link < NUM_OF_INPUT && Sw_Flash_Data_Val.input_setting[idx_in_link].mode == SYNC_PRESS_STATE)
+			if(idx_in_link < NUM_OF_INPUT )
 			{
-				u8 stt = rd_read_input(idx_in_link);
-				light_onoff_idx(i,stt, 0);
-				set_on_power_up_onoff(i, 0, stt);
-				rd_init_onoff_relay(stt,i);
-			}
-			else
-			{
-				u8 pow_start = get_power_start_output(i);
-				if(pow_start == RD_PowUpOff || pow_start == RD_PowUpOn)
+				if(Sw_Flash_Data_Val.input_setting[idx_in_link].mode == SYNC_PRESS_STATE)
 				{
-					light_onoff_idx(i,pow_start, 0);
-					set_on_power_up_onoff(i, 0, pow_start); // save for POWer_up
-					rd_init_onoff_relay(pow_start,i);
+					u8 stt = rd_read_input(idx_in_link);
+					light_onoff_idx(i,stt, 0);
+					set_on_power_up_onoff(i, 0, stt);
+					rd_init_onoff_relay(stt,i);
 				}
-				else if(pow_start == RD_PowUpStore)
+				else if(Sw_Flash_Data_Val.input_setting[idx_in_link].mode == PRESS_RELEASE_STATE)
 				{
-					u8 state = RD_get_on_off(i,0);
-					rd_init_onoff_relay(state,i);
+					u8 pow_start = get_power_start_output(i);
+					if(pow_start == RD_PowUpOff || pow_start == RD_PowUpOn)
+					{
+						light_onoff_idx(i,pow_start, 0);
+						set_on_power_up_onoff(i, 0, pow_start); // save for POWer_up
+						rd_init_onoff_relay(pow_start,i);
+					}
+					else if(pow_start == RD_PowUpStore)
+					{
+						u8 state = RD_get_on_off(i,0);
+						rd_init_onoff_relay(state,i);
+					}
 				}
 			}
 		}
 		rd_rsp_state_output(Sw_Flash_Data_Val.Gw_Add);
+
 	}
 	else
 	{
