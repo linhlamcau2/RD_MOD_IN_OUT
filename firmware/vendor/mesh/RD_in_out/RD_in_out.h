@@ -223,7 +223,7 @@ void rd_on_off_led(u8 idx_led, u8 status);
 
 void rd_init_queue_relay();
 int rd_init_onoff_relay(u8 stt,u8 id_relay);
-int rd_onoff_relay(u8 stt,u8 id_relay, int rsp,u8 from);    //0: local, 1: app
+int rd_onoff_relay(u8 stt,u8 id_relay, int rsp,u8 src);    //0: local, 1: app
 void rd_toggle_relay(uint8_t id_ele, int rsp);
 
 #endif

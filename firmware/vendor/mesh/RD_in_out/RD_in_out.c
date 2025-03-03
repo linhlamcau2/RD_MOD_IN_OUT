@@ -53,7 +53,7 @@ static void RD_GPIO_Init(void) {
 	}
 
 
-	gpio_setup_up_down_resistor(BUTTON_RESET, PM_PIN_PULLDOWN_100K);
+	gpio_setup_up_down_resistor(BUTTON_RESET, PM_PIN_PULLUP_10K);
 	gpio_set_func(BUTTON_RESET, AS_GPIO);
 	gpio_set_input_en(BUTTON_RESET, 1);
 }

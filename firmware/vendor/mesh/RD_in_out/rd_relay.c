@@ -45,11 +45,11 @@ int rd_init_onoff_relay(u8 stt,u8 id_relay)
 	return rd_onoff_output(stt,id_relay,0);
 }
 
-int rd_onoff_relay(u8 stt,u8 id_relay, int rsp, u8 from)
+int rd_onoff_relay(u8 stt,u8 id_relay, int rsp, u8 src)
 {
 	u8 state = RD_get_on_off(id_relay,0);
 
-	if(!state == !stt || (from && is_output_linked(id_relay)))
+	if(!state == !stt || (src && is_output_linked(id_relay)))
 		return rd_send_relay_stt(id_relay,state);
 	return rd_onoff_output(stt,id_relay,rsp);
 }
